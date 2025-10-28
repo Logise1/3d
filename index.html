@@ -148,5 +148,893 @@
             </div>
         </nav>
 
-        <!--
+        <!-- Contenido Principal -->
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+
+            <!-- Vista de la Tienda (Visible por defecto) -->
+            <div id="store-view">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Modelos Disponibles (desde Thingiverse)</h1>
+                
+                <!-- Barra de Búsqueda (NUEVO) -->
+                <form id="search-form" class="mb-6">
+                    <div class="relative max-w-lg mx-auto">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                        <input type="search" id="search-input" class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500" placeholder="Buscar modelos por nombre...">
+                        <button type="submit" class="text-white absolute right-2.5 bottom-2.5 bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2">
+                            Buscar
+                        </button>
+                        <!-- Botón para limpiar, inicialmente oculto -->
+                        <button type="button" id="clear-search-btn" class="text-gray-500 absolute right-24 bottom-2.5 hover:text-gray-900 font-medium rounded-lg text-sm px-4 py-2 hidden">
+                            Limpiar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Spinner de Carga de la Tienda -->
+                <div id="store-loading" class="flex justify-center items-center h-64">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Parrilla de Modelos -->
+                <div id="models-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Las tarjetas de modelos se insertarán aquí por JS -->
+                </div>
+            </div>
+
+            <!-- (NUEVO) Vista de Detalles del Producto (Oculta por defecto) -->
+            <!-- ESTA SECCIÓN FALTABA -->
+            <div id="details-view" class="hidden">
+                <div class="max-w-4xl mx-auto">
+                    <!-- Botón para volver -->
+                    <button id="details-back-btn" class="mb-4 inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
+                        <svg class="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                        Volver a la tienda
+                    </button>
+
+                    <!-- Contenido del producto -->
+                    <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2">
+                            <!-- Imagen del Producto -->
+                            <div class="p-4">
+                                <img id="details-img" src="https://placehold.co/600x400" alt="Modelo" class="w-full h-auto object-cover rounded-lg">
+                            </div>
+
+                            <!-- Información del Producto -->
+                            <div class="p-6 flex flex-col justify-between">
+                                <div>
+                                    <h1 id="details-name" class="text-3xl font-bold text-gray-900 mb-2">Nombre del Modelo</h1>
+                                    <div class="flex items-center text-2xl font-bold text-yellow-800 bg-yellow-100 rounded-full px-4 py-1.5 mb-4 max-w-max">
+                                        <svg class="w-6 h-6 mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                                        <span id="details-price">100</span>
+                                        <span class="ml-1 text-xl">monedas</span>
+                                    </div>
+                                    <p id="details-description" class="text-gray-700 text-base">
+                                        Descripción del modelo...
+                                    </p>
+                                </div>
+                                <button id="details-buy-btn" class="mt-6 w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Proceder a la Compra
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- FIN DE LA SECCIÓN QUE FALTABA -->
+
+            <!-- Vista de Mis Pedidos (Oculta por defecto) -->
+            <!-- ESTA SECCIÓN FALTABA -->
+            <div id="orders-view" class="hidden">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Mis Pedidos</h1>
+
+                <!-- Spinner de Carga de Pedidos -->
+                <div id="orders-loading" class="flex justify-center items-center h-64">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Lista de Pedidos -->
+                <div id="orders-list" class="space-y-4">
+                    <!-- Los pedidos se insertarán aquí por JS -->
+                </div>
+            </div>
+            <!-- FIN DE LA SECCIÓN QUE FALTABA -->
+
+
+            <!-- Panel de Administración (Oculto por defecto, ahora con ID) -->
+            <details id="admin-panel" class="mt-12 bg-white p-4 rounded-lg shadow hidden">
+                <summary class="font-medium text-lg cursor-pointer">Panel de Administración</summary>
+                <!-- Modificado: se eliminó el formulario de añadir modelo y el grid de 2 columnas -->
+                <div class="mt-4 grid grid-cols-1 gap-6 border-t pt-4">
+                    
+                    <!-- Formulario para Añadir Monedas -->
+                    <form id="add-coins-form" class="space-y-4 max-w-md mx-auto">
+                        <h3 class="text-xl font-semibold">Añadir Monedas al Usuario Actual</h3>
+                        <div>
+                            <label for="coins-amount" class="block text-sm font-medium text-gray-700">Cantidad de Monedas</label>
+                            <input type="number" id="coins-amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                        </div>
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                            Añadir Monedas
+                        </button>
+                    </form>
+
+                </div>
+            </details>
+
+        </main>
+    </div>
+
+    <!-- Modal de Compra (Oculto por defecto) -->
+    <div id="purchase-modal" class="modal hidden fixed inset-0 z-30 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Fondo oscuro del modal -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- Contenido del Modal -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="modal-content inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <!-- Icono de Cubo -->
+                            <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Confirmar Pedido</h3>
+                            <div class="mt-4">
+                                <!-- Detalles del modelo -->
+                                <div class="flex items-center space-x-4">
+                                    <img id="modal-img" src="https://placehold.co/100x100" alt="Modelo" class="w-24 h-24 rounded-md object-cover">
+                                    <div>
+                                        <p id="modal-model-name" class="text-xl font-semibold">Nombre del Modelo</p>
+                                        <div class="flex items-center text-lg text-yellow-800">
+                                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                                            <span id="modal-model-price" class="font-bold">...</span>
+                                            <span class="ml-1">monedas</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selector de Color -->
+                                <div class="mt-6">
+                                    <label for="color-picker" class="block text-sm font-medium text-gray-700">Elige un color para tu impresión:</label>
+                                    <input type="color" id="color-picker" name="color-picker" value="#3b82f6" class="mt-1 w-full h-10 rounded-md border-gray-300">
+                                </div>
+
+                                <!-- Mensajes de estado/error -->
+                                <div id="modal-message" class="mt-4 text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botones de Acción del Modal -->
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="confirm-purchase-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Confirmar Pedido
+                    </button>
+                    <button id="cancel-purchase-btn" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Script de Firebase -->
+    <script type="module">
+        // Importar funciones de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            updateDoc, 
+            collection, 
+            addDoc,
+            onSnapshot, 
+            query,
+            serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuración de Firebase ---
+
+        // Configuración de Firebase proporcionada por el usuario
+        const firebaseConfig = {
+          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+          authDomain: "dprinting-9b264.firebaseapp.com",
+          projectId: "dprinting-9b264",
+          storageBucket: "dprinting-9b264.firebasestorage.app",
+          messagingSenderId: "647333546063",
+          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+          measurementId: "G-FWKS2HB1SE"
+        };
+        
+        // Usar el projectId como el appId para las rutas de Firestore
+        const appId = firebaseConfig.projectId || 'default-app-id';
+
+        // Inicializar Firebase
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug'); // Habilitar logs para depuración
+            console.log("Firebase inicializado correctamente.");
+        } catch (error) {
+            console.error("Error al inicializar Firebase:", error);
+            document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
+        }
+
+        // --- Variables de Estado de la App ---
+        let userId = null;
+        let currentUserCoins = 0;
+        let currentModelToPurchase = null;
+        let currentModelToView = null; // (NUEVO) Para guardar datos de la vista de detalles
+        
+        // --- Elementos del DOM ---
+        const authStatus = document.getElementById('auth-status');
+        const userCoinsDisplay = document.getElementById('user-coins');
+        
+        // Contenedores
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+
+        // Formularios de Auth
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showLogin = document.getElementById('show-login');
+        const showRegister = document.getElementById('show-register');
+        const authMessage = document.getElementById('auth-message');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Navegación
+        const navStore = document.getElementById('nav-store');
+        const navOrders = document.getElementById('nav-orders');
+        const storeView = document.getElementById('store-view');
+        // CORRECCIÓN: Definir variables para vistas que faltaban
+        const ordersView = document.getElementById('orders-view');
+        const detailsView = document.getElementById('details-view');
+        
+        // Tienda
+        const modelsGrid = document.getElementById('models-grid');
+        const storeLoading = document.getElementById('store-loading');
+        
+        // Pedidos
+        // CORRECCIÓN: Definir variables para vistas que faltaban
+        const ordersList = document.getElementById('orders-list');
+        const ordersLoading = document.getElementById('orders-loading');
+
+        // Búsqueda (NUEVO)
+        const searchForm = document.getElementById('search-form');
+        const searchInput = document.getElementById('search-input');
+        const clearSearchBtn = document.getElementById('clear-search-btn');
+
+        // (NUEVO) Elementos de la Vista de Detalles
+        const detailsBackBtn = document.getElementById('details-back-btn');
+        const detailsImg = document.getElementById('details-img');
+        const detailsName = document.getElementById('details-name');
+        const detailsDescription = document.getElementById('details-description');
+        const detailsPrice = document.getElementById('details-price');
+        const detailsBuyBtn = document.getElementById('details-buy-btn');
+
+        // Modal
+        const purchaseModal = document.getElementById('purchase-modal');
+        const cancelPurchaseBtn = document.getElementById('cancel-purchase-btn');
+        const confirmPurchaseBtn = document.getElementById('confirm-purchase-btn');
+        const modalImg = document.getElementById('modal-img');
+        const modalModelName = document.getElementById('modal-model-name');
+        const modalModelPrice = document.getElementById('modal-model-price');
+        const colorPicker = document.getElementById('color-picker');
+        const modalMessage = document.getElementById('modal-message');
+
+        // Admin
+        const addCoinsForm = document.getElementById('add-coins-form');
+        const adminPanel = document.getElementById('admin-panel'); // (NUEVO)
+
+        // --- Lógica de Autenticación ---
+
+        // Listener del estado de autenticación
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuario está conectado
+                userId = user.uid;
+                authStatus.textContent = `Conectado como: ${user.email}`;
+                
+                // Ocultar auth, mostrar app
+                authContainer.style.display = 'none';
+                appContainer.style.display = 'block';
+
+                // (NUEVO) Lógica para mostrar/ocultar panel de admin
+                if (user.email === 'arielcapdevilagarcia@gmail.com') {
+                    adminPanel.classList.remove('hidden');
+                } else {
+                    adminPanel.classList.add('hidden');
+                }
+                
+                // Configurar listeners de datos para este usuario
+                await setupUserListeners(userId);
+                
+            } else {
+                // Usuario está desconectado
+                userId = null;
+                authStatus.textContent = 'Por favor, inicia sesión.';
+                userCoinsDisplay.textContent = '0';
+
+                // (NUEVO) Ocultar panel de admin al desconectar
+                adminPanel.classList.add('hidden'); 
+
+                // Mostrar auth, ocultar app
+                authContainer.style.display = 'flex';
+                appContainer.style.display = 'none';
+            }
+        });
+
+        // Manejar envío de formulario de Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            authMessage.textContent = ''; // Limpiar mensaje de error
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará del resto
+            } catch (error) {
+                console.error("Error de inicio de sesión:", error.code);
+                authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
+            }
+        });
+
+        // Manejar envío de formulario de Registro
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            authMessage.textContent = ''; // Limpiar mensaje de error
+            
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará del resto
+                // El listener 'setupUserListeners' creará el perfil con 1000 monedas
+            } catch (error) {
+                console.error("Error de registro:", error.code);
+                authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
+            }
+        });
+
+        // Manejar click de Cerrar Sesión
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // onAuthStateChanged se encargará de limpiar la UI
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+            }
+        });
+
+        // Cambiar entre formularios de login y registro
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            authMessage.textContent = '';
+        });
+
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            authMessage.textContent = '';
+        });
+
+        // Función para traducir errores de Firebase
+        function getFirebaseAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/user-not-found':
+                    return 'No se encontró ningún usuario con ese correo electrónico.';
+                case 'auth/wrong-password':
+                    return 'Contraseña incorrecta. Inténtalo de nuevo.';
+                case 'auth/email-already-in-use':
+                    return 'Este correo electrónico ya está en uso por otra cuenta.';
+                case 'auth/weak-password':
+                    return 'La contraseña debe tener al menos 6 caracteres.';
+                case 'auth/invalid-email':
+                    return 'El formato del correo electrónico no es válido.';
+                default:
+                    return 'Ocurrió un error. Por favor, inténtalo de nuevo.';
+            }
+        }
+
+
+        // --- Lógica de Firestore (Listeners en tiempo real) ---
+
+        async function setupUserListeners(currentUserId) {
+            if (!currentUserId) return;
+
+            // 1. Listener para el perfil del usuario (monedas)
+            const userProfileRef = doc(db, `/artifacts/${appId}/users/${currentUserId}/profile/data`);
+            
+            onSnapshot(userProfileRef, async (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserCoins = data.coins || 0;
+                    userCoinsDisplay.textContent = currentUserCoins;
+                } else {
+                    // Es un usuario nuevo (recién registrado), crear perfil con 1000 monedas
+                    console.log("Creando perfil para nuevo usuario...");
+                    try {
+                        await setDoc(userProfileRef, { 
+                            userId: currentUserId,
+                            email: auth.currentUser.email, // Guardar el email en el perfil
+                            coins: 1000,
+                            createdAt: serverTimestamp()
+                        });
+                        currentUserCoins = 1000;
+                        userCoinsDisplay.textContent = currentUserCoins;
+                    } catch (error) {
+                        console.error("Error al crear perfil de usuario:", error);
+                    }
+                }
+            }, (error) => {
+                console.error("Error en listener de perfil:", error);
+            });
+
+            // 2. Cargar modelos desde la API externa (Thingiverse)
+            await fetchModelsFromAPI();
+
+            // 3. Listener para los pedidos del usuario (privado)
+            const userOrdersRef = collection(db, `/artifacts/${appId}/users/${currentUserId}/orders`);
+            onSnapshot(query(userOrdersRef), (snapshot) => { // Podríamos ordenar por fecha aquí si quisiéramos
+                renderOrders(snapshot.docs);
+                // Comprobar si ordersLoading existe antes de usarlo
+                if (ordersLoading) {
+                    ordersLoading.style.display = 'none';
+                }
+            }, (error) => {
+                console.error("Error en listener de pedidos:", error);
+                if (ordersLoading) {
+                    ordersLoading.innerHTML = '<p class="text-red-500">Error al cargar tus pedidos.</p>';
+                }
+            });
+        }
+
+        // --- Carga de Modelos desde API (Thingiverse) ---
+
+        // MODIFICADO: Aceptar un término de búsqueda opcional
+        async function fetchModelsFromAPI(searchTerm = null) {
+            storeLoading.style.display = 'flex';
+            modelsGrid.innerHTML = '';
+            
+            // ==================================================================
+            // ¡IMPORTANTE!
+            // Pega tu Token de Acceso de la API de Thingiverse aquí.
+            // Debes registrar una app en https://www.thingiverse.com/apps/new para obtener uno.
+            const THINGIVERSE_ACCESS_TOKEN = '061cbc2ed2f6c164cd4172c14ba0fe7d'; // <-- ¡PEGA TU TOKEN AQUÍ!
+            // ==================================================================
+
+            // MODIFICADO: Determinar el endpoint basado en si hay término de búsqueda
+            let originalApiEndpoint;
+            if (searchTerm) {
+                // Usar el endpoint de búsqueda si se proporciona un término
+                originalApiEndpoint = `https://api.thingiverse.com/search/${encodeURIComponent(searchTerm)}?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+            } else {
+                // Usar el endpoint de 'populares' por defecto
+                originalApiEndpoint = `https://api.thingiverse.com/popular?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+            }
+
+            // --- MODIFICACIÓN: Usar Codetabs Proxy ---
+            // Se antepone el proxy de Codetabs para evitar errores de CORS
+            // https://codetabs.com/cors-proxy/
+            const codetabsProxy = 'https://api.codetabs.com/v1/proxy?quest=';
+            const apiEndpoint = codetabsProxy + originalApiEndpoint;
+            // --- FIN DE LA MODIFICACIÓN ---
+
+
+            // Datos simulados en caso de que la API falle o no haya token
+            const simulatedModels = [
+                { id: 'sim-model-1', name: 'Modelo Simulado (Fallo de API)', description: 'Pega tu token de Thingiverse en el código para cargar modelos reales.', price: 150, imageUrl: 'https://placehold.co/600x400/3498db/ffffff?text=Modelo+de+API' },
+                { id: 'sim-model-2', name: 'Otro Modelo Simulado', description: 'Este es un modelo de reserva.', price: 300, imageUrl: 'https://placehold.co/600x400/2ecc71/ffffff?text=Modelo+2+API' }
+            ];
+
+            if (!THINGIVERSE_ACCESS_TOKEN) {
+                console.warn("MODO DE SIMULACIÓN: No se encontró THINGIVERSE_ACCESS_TOKEN. Cargando modelos falsos.");
+                // Mostrar mensaje en lugar del spinner
+                storeLoading.innerHTML = `<p class="text-orange-500 col-span-full text-center p-4 bg-orange-100 rounded-lg"><b>Modo de simulación.</b><br>Por favor, añade tu <b>Token de Acceso de Thingiverse</b> en el script para cargar modelos reales.</p>`;
+                await new Promise(resolve => setTimeout(resolve, 500)); // Pequeña pausa
+                renderModels(simulatedModels);
+                return; // Salir de la función
+            }
+
+            try {
+                // Esta llamada ahora va a través del proxy
+                const response = await fetch(apiEndpoint);
+                if (!response.ok) {
+                    // Si la respuesta es 401, es un token inválido
+                    if (response.status === 401) {
+                        throw new Error('Token de API de Thingiverse inválido o caducado.');
+                    }
+                    throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+                }
+                
+                // MODIFICADO: Manejar la respuesta (la búsqueda tiene formato {hits: [...]}, popular es [...])
+                let thingiverseModels;
+                const responseData = await response.json(); 
+
+                if (searchTerm) {
+                    thingiverseModels = responseData.hits; // Para la búsqueda, los modelos están en 'hits'
+                } else {
+                    thingiverseModels = responseData; // Para 'popular', es un array directo
+                }
+
+                // Comprobar si thingiverseModels es un array (en caso de error de API o 0 resultados)
+                if (!Array.isArray(thingiverseModels)) {
+                    console.warn("La respuesta de la API no fue un array (posiblemente no se encontraron resultados o hubo un error):", responseData);
+                    thingiverseModels = []; // Tratar como si no hubiera resultados
+                }
+                
+                // Adaptar los datos de Thingiverse a nuestro formato de 'model'
+                // Los modelos de Thingiverse no tienen "precio", así que asignamos uno por defecto.
+                const models = thingiverseModels.map(thing => ({
+                    id: thing.id,
+                    name: thing.name,
+                    description: `Autor: ${thing.creator.name} (vía Thingiverse)`, // Una descripción mejor
+                    price: 100, // Precio por defecto para la app
+                    // MODIFICADO: Usar la URL de la imagen por defecto (más grande) si existe, si no, usar 'thumbnail'
+                    imageUrl: (thing.default_image && thing.default_image.url) ? thing.default_image.url : thing.thumbnail
+                }));
+
+                renderModels(models); 
+                storeLoading.style.display = 'none'; // Ocultar spinner
+
+            } catch (error) {
+                console.error("Error al cargar modelos desde Thingiverse API:", error);
+                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar desde Thingiverse:</b><br>${error.message}<br><br>Cargando modelos de simulación...</p>`;
+                
+                // Fallback a la simulación si la API falla
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                renderModels(simulatedModels);
+            }
+        }
+
+
+        // --- Funciones de Renderizado ---
+
+        // Modificada para aceptar un array de objetos (de JSON) en lugar de docs de Firestore
+        function renderModels(models) {
+            modelsGrid.innerHTML = ''; // Limpiar parrilla
+            if (models.length === 0) {
+                // MODIFICADO: Mensaje más específico si no hay resultados
+                const searchTerm = searchInput.value.trim();
+                if (searchTerm) {
+                    modelsGrid.innerHTML = `<p class="text-gray-500 col-span-full text-center">No se encontraron modelos para "<b>${searchTerm}</b>".</p>`;
+                } else {
+                    modelsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">No hay modelos en la tienda en este momento.</p>';
+                }
+                return;
+            }
+
+            models.forEach(model => {
+                const modelId = model.id;
+                
+                // Usar placeholder si no hay imagen
+                const imageUrl = model.imageUrl || 'https://placehold.co/600x400/e2e8f0/64748b?text=Modelo+3D';
+                
+                // Limpiar la descripción para usarla en data-attribute (evitar que rompa el HTML)
+                const cleanDescription = model.description.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+                const card = `
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl flex flex-col">
+                        <img src="${imageUrl}" alt="${model.name}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Imagen+no+disponible'">
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold text-gray-900">${model.name}</h3>
+                            <p class="text-gray-600 text-sm mt-2 flex-grow">${model.description}</p>
+                            <div class="mt-4 flex justify-between items-center">
+                                <div class="flex items-center text-lg font-bold text-yellow-800 bg-yellow-100 rounded-full px-3 py-0.5">
+                                    <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                                    <span>${model.price}</span>
+                                </div>
+                                <!-- MODIFICADO: Botón "Comprar" cambiado por "Detalles" -->
+                                <button 
+                                    class="details-btn inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-gray-700 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                                    data-id="${modelId}"
+                                    data-name="${model.name}"
+                                    data-price="${model.price}"
+                                    data-img="${imageUrl}"
+                                    data-description="${cleanDescription}"
+                                >
+                                    Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                modelsGrid.innerHTML += card;
+            });
+
+            // Añadir event listeners a los botones de "Detalles"
+            document.querySelectorAll('.details-btn').forEach(button => {
+                button.addEventListener('click', openDetailsView);
+            });
+        }
+
+        function renderOrders(docs) {
+            // Comprobar si ordersList existe
+            if (!ordersList) return; 
+
+            ordersList.innerHTML = ''; // Limpiar lista
+            if (docs.length === 0) {
+                ordersList.innerHTML = '<p class="text-gray-500 text-center">Aún no has realizado ningún pedido.</p>';
+                return;
+            }
+
+            // Ordenar pedidos por fecha (más nuevos primero)
+            const sortedDocs = docs.sort((a, b) => {
+                const timeA = a.data().createdAt?.seconds || 0;
+                const timeB = b.data().createdAt?.seconds || 0;
+                return timeB - timeA; // Descendente
+            });
+
+            sortedDocs.forEach(doc => {
+                const order = doc.data();
+                
+                // Formatear el estado
+                let statusClass = '';
+                switch (order.status) {
+                    case 'Pendiente': statusClass = 'bg-yellow-100 text-yellow-800'; break;
+                    case 'Imprimiendo': statusClass = 'bg-blue-100 text-blue-800'; break;
+                    case 'Completado': statusClass = 'bg-green-100 text-green-800'; break;
+                    default: statusClass = 'bg-gray-100 text-gray-800';
+                }
+
+                const orderItem = `
+                    <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${order.color};"></div>
+                            <div>
+                                <p class="text-lg font-semibold">${order.modelName}</p>
+                                <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
+                            </div>
+                        </div>
+                        <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass}">
+                            ${order.status}
+                        </span>
+                    </div>
+                `;
+                ordersList.innerHTML += orderItem;
+            });
+        }
+
+        // --- Lógica de Navegación ---
+
+        function showView(viewId) {
+            // Ocultar todas las vistas (y comprobar si existen)
+            if (storeView) storeView.style.display = 'none';
+            if (ordersView) ordersView.style.display = 'none';
+            if (detailsView) detailsView.style.display = 'none';
+            
+            // Quitar clase activa de todos los enlaces nav
+            if (navStore) {
+                navStore.classList.remove('border-blue-500', 'text-gray-900');
+                navStore.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+            }
+            if (navOrders) {
+                navOrders.classList.remove('border-blue-500', 'text-gray-900');
+                navOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+            }
+
+            // Mostrar la vista seleccionada
+            if (viewId === 'store' && storeView) {
+                storeView.style.display = 'block';
+                navStore.classList.add('border-blue-500', 'text-gray-900');
+                navStore.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+            } else if (viewId === 'orders' && ordersView) {
+                ordersView.style.display = 'block';
+                navOrders.classList.add('border-blue-500', 'text-gray-900');
+                navOrders.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+            } else if (viewId === 'details' && detailsView) {
+                detailsView.style.display = 'block';
+            }
+        }
+
+        navStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        navOrders.addEventListener('click', (e) => { e.preventDefault(); showView('orders'); });
+
+        // --- (NUEVO) Lógica de la Vista de Detalles ---
+
+        function openDetailsView(e) {
+            // Usar currentTarget para asegurar que obtenemos el botón, incluso if se hace clic en un ícono dentro
+            const { id, name, price, img, description } = e.currentTarget.dataset;
+            
+            currentModelToView = {
+                id: id,
+                name: name,
+                price: parseInt(price),
+                img: img,
+                description: description
+            };
+
+            // Rellenar datos de la vista de detalles (comprobando si existen)
+            if (detailsImg) detailsImg.src = img;
+            if (detailsName) detailsName.textContent = name;
+            if (detailsDescription) detailsDescription.textContent = description;
+            if (detailsPrice) detailsPrice.textContent = price;
+
+            // Mostrar la vista de detalles
+            showView('details');
+            window.scrollTo(0, 0); // Subir al inicio de la página
+        }
+
+        function closeDetailsView() {
+            showView('store');
+            currentModelToView = null;
+        }
+
+        // --- Lógica del Modal de Compra ---
+
+        // MODIFICADO: Ahora acepta un objeto modelData en lugar de un evento
+        function openPurchaseModal(modelData) {
+            if (!modelData) {
+                console.error("openPurchaseModal fue llamado sin modelData");
+                return;
+            }
+            
+            currentModelToPurchase = modelData; // Usar los datos del modelo actual
+
+            // Rellenar datos del modal
+            if (modalImg) modalImg.src = modelData.img;
+            if (modalModelName) modalModelName.textContent = modelData.name;
+            if (modalModelPrice) modalModelPrice.textContent = modelData.price;
+            if (modalMessage) modalMessage.textContent = '';
+            if (colorPicker) colorPicker.value = '#3b82f6'; // Reset color
+            if (confirmPurchaseBtn) {
+                confirmPurchaseBtn.disabled = false;
+                confirmPurchaseBtn.textContent = 'Confirmar Pedido';
+            }
+
+            // Mostrar modal
+            if (purchaseModal) purchaseModal.classList.remove('hidden');
+        }
+
+        function closePurchaseModal() {
+            if (purchaseModal) purchaseModal.classList.add('hidden');
+            currentModelToPurchase = null;
+        }
+
+        async function handlePurchase() {
+            if (!currentModelToPurchase || !userId) return;
+
+            const modelPrice = currentModelToPurchase.price;
+            const selectedColor = colorPicker.value;
+
+            // 1. Comprobar si el usuario tiene suficientes monedas
+            if (currentUserCoins < modelPrice) {
+                modalMessage.textContent = 'Error: No tienes suficientes monedas.';
+                modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
+                return;
+            }
+
+            // Deshabilitar botón para evitar doble click
+            confirmPurchaseBtn.disabled = true;
+            confirmPurchaseBtn.textContent = 'Procesando...';
+            modalMessage.textContent = 'Procesando tu pedido...';
+            modalMessage.className = 'mt-4 text-sm text-blue-600 font-medium';
+
+            try {
+                // 2. Restar monedas del perfil del usuario
+                const newCoinBalance = currentUserCoins - modelPrice;
+                const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                await updateDoc(userProfileRef, {
+                    coins: newCoinBalance
+                });
+
+                // 3. Crear el nuevo documento de pedido en la subcolección del usuario
+                const userOrdersRef = collection(db, `/artifacts/${appId}/users/${userId}/orders`);
+                await addDoc(userOrdersRef, {
+                    modelId: currentModelToPurchase.id, // Guardamos el ID de la API
+                    modelName: currentModelToPurchase.name,
+                    color: selectedColor,
+                    pricePaid: modelPrice,
+                    status: 'Pendiente', // Estado inicial del pedido
+                    createdAt: serverTimestamp()
+                });
+
+                // 4. Éxito
+                modalMessage.textContent = '¡Pedido realizado con éxito! Será enviado a impresión.';
+                modalMessage.className = 'mt-4 text-sm text-green-600 font-medium';
+
+                // Cerrar modal después de 2 segundos
+                setTimeout(closePurchaseModal, 2000);
+
+            } catch (error) {
+                console.error("Error al procesar la compra:", error);
+                modalMessage.textContent = 'Error al procesar el pedido. Inténtalo de nuevo.';
+                modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
+                confirmPurchaseBtn.disabled = false;
+                confirmPurchaseBtn.textContent = 'Confirmar Pedido';
+            }
+        }
+
+        // CORRECCIÓN: Comprobar si los botones existen antes de añadir listeners
+        if (cancelPurchaseBtn) cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
+        if (confirmPurchaseBtn) confirmPurchaseBtn.addEventListener('click', handlePurchase);
+
+        // (NUEVO) Listeners para la vista de detalles
+        if (detailsBackBtn) detailsBackBtn.addEventListener('click', closeDetailsView);
+        if (detailsBuyBtn) detailsBuyBtn.addEventListener('click', () => {
+            // Llama a openPurchaseModal con los datos del modelo que se está viendo
+            if (currentModelToView) {
+                openPurchaseModal(currentModelToView);
+            }
+        });
+
+        // --- Lógica del Panel de Administración ---
+
+        if (addCoinsForm) addCoinsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!userId) {
+                console.warn("Intento de añadir monedas sin estar conectado.");
+                return;
+            }
+
+            const amountInput = document.getElementById('coins-amount');
+            const amount = parseInt(amountInput.value);
+            if (!amount || amount <= 0) {
+                console.warn("Intento de añadir una cantidad de monedas inválida.");
+                return;
+            }
+
+            try {
+                const newTotal = currentUserCoins + amount;
+                const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                await updateDoc(userProfileRef, {
+                    coins: newTotal
+                });
+                console.log(`${amount} monedas añadidas con éxito.`);
+                addCoinsForm.reset();
+            } catch (error) {
+                console.error("Error al añadir monedas:", error);
+            }
+        });
+
+
+        // --- Lógica de Búsqueda (NUEVO) ---
+
+        if (searchForm) searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const searchTerm = searchInput.value.trim();
+            if (searchTerm) {
+                fetchModelsFromAPI(searchTerm); // Fetch con término de búsqueda
+                clearSearchBtn.classList.remove('hidden'); // Mostrar botón de limpiar
+            } else {
+                // Si la búsqueda está vacía, mostrar populares
+                fetchModelsFromAPI(); 
+                clearSearchBtn.classList.add('hidden');
+            }
+        });
+
+        if (clearSearchBtn) clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            clearSearchBtn.classList.add('hidden'); // Ocultar botón de limpiar
+            fetchModelsFromAPI(); // Fetch de modelos populares
+        });
+
+
+        // --- Iniciar la Aplicación ---
+        // (onAuthStateChanged se ejecuta automáticamente al cargar)
+
+    </script>
+</body>
+</html>
 
