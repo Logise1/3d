@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print3D Store - Iniciar Sesión</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilo base con la fuente Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gris claro de fondo */
+        }
+        /* Estilos para el modal (reutilizados para bienvenida y compra) */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        .modal.hidden {
+            pointer-events: none;
+            opacity: 0;
+        }
+        .modal.hidden .modal-content {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Contenedor de Autenticación -->
+    <div id="auth-container" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+            
+            <!-- Formulario de Inicio de Sesión (Visible por defecto) -->
+            <form id="login-form" class="space-y-6">
+                <div class="flex justify-center">
+                    <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <h2 class="text-center text-3xl font-bold text-gray-900">Iniciar Sesión</h2>
+                <div>
+                    <label for="login-email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                    <input id="login-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="login-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input id="login-password" name="password" type="password" autocomplete="current-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Iniciar Sesión
+                </button>
+                <p class="text-center text-sm text-gray-600">
+                    ¿No tienes cuenta? 
+                    <a href="#" id="show-register" class="font-medium text-blue-600 hover:text-blue-500">Regístrate aquí</a>
+                </p>
+            </form>
+
+            <!-- Formulario de Registro (Oculto por defecto) -->
+            <form id="register-form" class="space-y-6 hidden">
+                <div class="flex justify-center">
+                    <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                </div>
+                <h2 class="text-center text-3xl font-bold text-gray-900">Crear Cuenta</h2>
+                <div>
+                    <label for="register-email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                    <input id="register-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <div>
+                    <label for="register-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input id="register-password" name="password" type="password" autocomplete="new-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Crear Cuenta
+                </button>
+                <p class="text-center text-sm text-gray-600">
+                    ¿Ya tienes cuenta? 
+                    <a href="#" id="show-login" class="font-medium text-blue-600 hover:text-blue-500">Inicia sesión</a>
+                </p>
+            </form>
+
+            <!-- Mensajes de Error de Autenticación -->
+            <div id="auth-message" class="mt-4 text-center text-sm text-red-600 font-medium"></div>
+        </div>
+    </div>
+
+    <!-- Modal de Bienvenida (Oculto por defecto) -->
+    <div id="welcome-modal" class="modal hidden fixed inset-0 z-40 overflow-y-auto" aria-labelledby="welcome-modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="modal-content inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="welcome-modal-title">¡Bienvenido a Print3D Store!</h3>
+                            <div class="mt-4 space-y-3 text-sm text-gray-700">
+                                <p>¡Gracias por registrarte!</p>
+                                <p>Esta tienda funciona con un sistema de <b class="text-yellow-800">monedas</b>. Actualmente tienes <b class="text-yellow-800">0 monedas</b>.</p>
+                                <p>Para añadir monedas a tu cuenta, debes pagarle a Ariel la tarifa correspondiente. La tasa de cambio es:</p>
+                                <p class="text-center font-semibold text-lg bg-gray-100 p-2 rounded-md">
+                                    250 monedas = 1€
+                                </p>
+                                <p>Contacta con él para cargar tu saldo y empezar a imprimir.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="close-welcome-modal-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Script de Firebase -->
+    <script type="module">
+        // Importar funciones de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            createUserWithEmailAndPassword,
+            signInWithEmailAndPassword
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuración de Firebase ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+          authDomain: "dprinting-9b264.firebaseapp.com",
+          projectId: "dprinting-9b264",
+          storageBucket: "dprinting-9b264.firebasestorage.app",
+          messagingSenderId: "647333546063",
+          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+          measurementId: "G-FWKS2HB1SE"
+        };
+        
+        const appId = firebaseConfig.projectId || 'default-app-id';
+
+        // Inicializar Firebase
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug');
+            console.log("Firebase inicializado correctamente.");
+        } catch (error) {
+            console.error("Error al inicializar Firebase:", error);
+        }
+
+        // --- Variables de Estado ---
+        let isNewUser = false; // Flag para mostrar el popup de bienvenida
+        
+        // --- Elementos del DOM ---
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const showLogin = document.getElementById('show-login');
+        const showRegister = document.getElementById('show-register');
+        const authMessage = document.getElementById('auth-message');
+        
+        // Modal de Bienvenida
+        const welcomeModal = document.getElementById('welcome-modal');
+        const closeWelcomeModalBtn = document.getElementById('close-welcome-modal-btn');
+
+        // --- Lógica de Autenticación ---
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuario está conectado
+                console.log("Usuario conectado:", user.uid);
+                
+                // Comprobar si es un usuario nuevo (recién registrado)
+                if (isNewUser) {
+                    await setupNewUserProfile(user.uid, user.email);
+                    welcomeModal.classList.remove('hidden'); // Mostrar modal de bienvenida
+                    isNewUser = false; // Resetear el flag
+                } else {
+                    // Si es un usuario existente, simplemente redirigir
+                    window.location.href = 'home.html';
+                }
+            } else {
+                // Usuario está desconectado
+                console.log("Usuario desconectado.");
+            }
+        });
+
+        // Crear perfil para usuario nuevo
+        async function setupNewUserProfile(userId, email) {
+            console.log("Creando perfil para nuevo usuario...");
+            try {
+                // Crear perfil privado
+                const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                await setDoc(userProfileRef, { 
+                    userId: userId,
+                    email: email, 
+                    coins: 0, // Empezar con 0 monedas
+                    createdAt: serverTimestamp()
+                });
+
+                // Crear entrada en la tabla pública de búsqueda
+                const userLookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${email}`);
+                await setDoc(userLookupRef, { userId: userId });
+                console.log("Perfil y public user lookup created.");
+            } catch (error) {
+                console.error("Error al crear perfil de usuario:", error);
+            }
+        }
+
+        // Manejar envío de formulario de Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            isNewUser = false; 
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            authMessage.textContent = ''; 
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará de la redirección
+            } catch (error) {
+                console.error("Error de inicio de sesión:", error.code);
+                authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
+            }
+        });
+
+        // Manejar envío de formulario de Registro
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            isNewUser = true; // Marcar como usuario nuevo
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            authMessage.textContent = ''; 
+            
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                // onAuthStateChanged se encargará de crear el perfil y mostrar el modal
+            } catch (error) {
+                console.error("Error de registro:", error.code);
+                authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
+            }
+        });
+
+        // Cambiar entre formularios de login y registro
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            authMessage.textContent = '';
+        });
+
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            authMessage.textContent = '';
+        });
+        
+        // --- Modal de Bienvenida ---
+        closeWelcomeModalBtn.addEventListener('click', () => {
+            welcomeModal.classList.add('hidden');
+            // Después de cerrar el modal, redirigir a home
+            window.location.href = 'home.html';
+        });
+
+        // Función para traducir errores de Firebase
+        function getFirebaseAuthErrorMessage(errorCode) {
+            switch (errorCode) {
+                case 'auth/user-not-found':
+                case 'auth/invalid-credential': 
+                    return 'Correo o contraseña incorrecta. Inténtalo de nuevo.';
+                case 'auth/wrong-password':
+                    return 'Contraseña incorrecta. Inténtalo de nuevo.';
+                case 'auth/email-already-in-use':
+                    return 'Este correo electrónico ya está en uso por otra cuenta.';
+                case 'auth/weak-password':
+                    return 'La contraseña debe tener al menos 6 caracteres.';
+                case 'auth/invalid-email':
+                    return 'El formato del correo electrónico no es válido.';
+                default:
+                    return 'Ocurrió un error. Por favor, inténtalo de nuevo.';
+            }
+        }
+
+    </script>
+</body>
+</html>
