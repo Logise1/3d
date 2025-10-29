@@ -212,8 +212,8 @@
         async function setupNewUserProfile(userId, email, name, phone) {
             console.log("Creando perfil para nuevo usuario...");
             try {
-                // Crear perfil privado
-                const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                // (FIX) Ruta privada explícita
+                const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
                 await setDoc(userProfileRef, { 
                     userId: userId,
                     email: email, 
@@ -223,8 +223,8 @@
                     createdAt: serverTimestamp()
                 });
 
-                // Crear entrada en la tabla pública de búsqueda (Ruta CORREGIDA)
-                const userLookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${email}`);
+                // (FIX) Ruta pública explícita
+                const userLookupRef = doc(db, 'artifacts', appId, 'public', 'data', 'user-lookup', email);
                 await setDoc(userLookupRef, { userId: userId });
                 console.log("Perfil y public user lookup created.");
             } catch (error) {
