@@ -639,7 +639,8 @@
 
             // 5. Si es Admin, cargar TODOS los pedidos
             if (isAdmin) {
-                const allOrdersRef = collection(db, `/artifacts/${appId}/public/allOrders`);
+                // (FIX 2: Ruta de lectura de pedidos corregida)
+                const allOrdersRef = collection(db, `/artifacts/${appId}/public/data/allOrders`);
                 onSnapshot(query(allOrdersRef), (snapshot) => {
                     renderAdminOrders(snapshot.docs);
                     adminOrdersLoading.style.display = 'none';
@@ -936,7 +937,8 @@
                 const docRef = await addDoc(userOrdersRef, orderData);
                 
                 // 3b. Copia pública (admin)
-                const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${docRef.id}`);
+                // (FIX 2: Ruta de escritura de pedidos corregida)
+                const adminOrderRef = doc(db, `/artifacts/${appId}/public/data/allOrders/${docRef.id}`);
                 await setDoc(adminOrderRef, orderData);
 
                 // 4. Éxito
@@ -1031,7 +1033,7 @@
 
         // --- Lógica de Admin ---
 
-        // (FIX 2: Bugeo de Pedidos)
+        // (FIX: Bugeo de Pedidos)
         function renderAdminOrders(docs) {
             adminOrdersList.innerHTML = ''; // <--- ¡¡¡CORRECCIÓN AÑADIDA!!!
             if (docs.length === 0) {
@@ -1084,7 +1086,8 @@
             const newStatus = e.target.value;
             const orderId = e.target.dataset.orderId;
 
-            const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${orderId}`);
+            // (FIX 2: Ruta de actualización de pedidos corregida)
+            const adminOrderRef = doc(db, `/artifacts/${appId}/public/data/allOrders/${orderId}`);
             const orderSnap = await getDoc(adminOrderRef);
             
             if (!orderSnap.exists()) {
@@ -1116,9 +1119,8 @@
             try {
                 if (targetEmail) {
                     targetUserEmail = targetEmail;
-                    // (FIX 1: Error de Email)
-                    // Se ha quitado "/data" de la ruta para que coincida con la creación de usuarios
-                    const lookupRef = doc(db, `/artifacts/${appId}/public/user-lookup/${targetEmail}`);
+                    // (FIX 1: Error de Email) Ruta corregida para incluir /data/
+                    const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
                     const lookupSnap = await getDoc(lookupRef);
                     if (!lookupSnap.exists()) {
                         throw new Error("Usuario no encontrado con ese email.");
