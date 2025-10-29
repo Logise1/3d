@@ -11,27 +11,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
-        /* Estilo base con la fuente Inter */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* gris claro de fondo */
-        }
-        /* Estilos para el modal (reutilizados para bienvenida y compra) */
-        .modal {
-            transition: opacity 0.25s ease;
-        }
-        .modal-content {
-            transition: transform 0.25s ease;
-        }
-        .modal.hidden {
-            pointer-events: none;
-            opacity: 0;
-        }
-        .modal.hidden .modal-content {
-            transform: scale(0.95);
-        }
-    </style>
+    <!-- Carga de estilos CSS externos -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- El bloque <style>...</style> que estaba aquí se ha movido a styles.css -->
+
 </head>
 <body class="antialiased text-gray-800">
 
