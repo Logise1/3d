@@ -14,13 +14,41 @@
     <!-- Carga de estilos CSS externos -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- El bloque <style>...</style> que estaba aquí se ha movido a styles.css -->
-
 </head>
 <body class="antialiased text-gray-800">
 
     <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
     <div id="app-container" class="min-h-screen hidden">
+
+        <!-- 
+          Barra de Navegación Móvil (visible en móvil) 
+          NUEVA SECCIÓN AÑADIDA
+        -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 sm:hidden">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Título -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span class="font-bold text-xl text-gray-900">Print3D</span>
+                    </div>
+                    <!-- Info de Usuario (Monedas) -->
+                    <div class="flex items-center">
+                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-3 py-1.5">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                            <span id="user-coins-mobile" class="font-bold text-sm">...</span>
+                        </div>
+                        <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Info de Usuario y Carga (para mostrar mientras se conecta) -->
+            <div class="bg-gray-100 py-2 px-4 border-t border-gray-200">
+                <div class="container mx-auto flex justify-between items-center text-xs text-gray-600">
+                    <span id="auth-status-mobile">Verificando...</span>
+                </div>
+            </div>
+        </nav>
 
         <!-- Barra de Navegación (visible en escritorio) -->
         <nav class="bg-white shadow-md sticky top-0 z-20 hidden sm:block">
@@ -74,6 +102,10 @@
                 
                 <!-- Barra de Búsqueda -->
                 <div class="mb-6">
+                    <!-- 
+                      NOTA: type="search" permite la 'x' para borrar
+                      y activa el evento 'search' 
+                    -->
                     <input type="search" id="search-bar" placeholder="Buscar modelos por nombre..." class="w-full p-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
@@ -233,7 +265,7 @@
                                 <!-- Resumen de Precio -->
                                 <div class="mt-4 p-3 bg-gray-50 rounded-md space-y-1 text-sm">
                                     <div class="flex justify-between">
-                                        <span>Precio Base (x3):</span>
+                                        <span>Precio Base:</span>
                                         <span id="price-summary-base" class="font-medium">...</span>
                                     </div>
                                     <div class="flex justify-between">
@@ -265,7 +297,7 @@
         </div>
     </div>
 
-    <!-- Barra de Navegación Móvil -->
+    <!-- Barra de Navegación Móvil (Inferior) -->
     <nav id="mobile-nav" class="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex z-30">
         <!-- Enlace Mis Pedidos -->
         <a href="cart.html" id="mobile-nav-orders" class="mobile-nav-link">
@@ -323,9 +355,8 @@
         
         // ==================================================================
         // ¡CONFIGURACIÓN DEL BACKEND!
-        // Pega aquí la URL de tu Cloudflare Worker desplegado.
         // ==================================================================
-        const workerUrl = 'https://3d.logise1123.workers.dev'; // <-- ¡URL ACTUALIZADA!
+        const workerUrl = 'https://3d.logise1123.workers.dev';
         // ==================================================================
         
         const appId = firebaseConfig.projectId || 'default-app-id';
@@ -341,6 +372,7 @@
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
             document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
+            document.getElementById('auth-status-mobile').textContent = 'Error al conectar con Firebase.';
         }
 
         // --- Variables de Estado de la App ---
@@ -352,19 +384,25 @@
         let currentCalculatedPrice = 0;
         
         // --- Elementos del DOM ---
+        // Headers Escritorio
         const authStatus = document.getElementById('auth-status');
         const userCoinsDisplay = document.getElementById('user-coins');
+        const logoutBtn = document.getElementById('logout-btn');
         
+        // Headers Móvil (NUEVO)
+        const authStatusMobile = document.getElementById('auth-status-mobile');
+        const userCoinsMobile = document.getElementById('user-coins-mobile');
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+
         // Contenedores
         const appContainer = document.getElementById('app-container');
 
-        // Botones Auth
-        const logoutBtn = document.getElementById('logout-btn');
-
-        // Navegación
+        // Navegación (Escritorio)
         const navStore = document.getElementById('nav-store');
         const navOrders = document.getElementById('nav-orders');
         const navAdminOrders = document.getElementById('nav-admin-orders');
+        
+        // Navegación (Móvil - Inferior)
         const mobileNavOrders = document.getElementById('mobile-nav-orders');
         const mobileNavStore = document.getElementById('mobile-nav-store');
         const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
@@ -377,7 +415,7 @@
         // Tienda
         const modelsGrid = document.getElementById('models-grid');
         const storeLoading = document.getElementById('store-loading');
-        const searchBar = document.getElementById('search-bar');
+        const searchBar = document.getElementById('search-bar'); // (ACTUALIZADO)
         
         // Detalles
         const backToStoreBtn = document.getElementById('back-to-store-btn');
@@ -419,7 +457,9 @@
                 // Usuario está conectado
                 userId = user.uid;
                 userEmail = user.email;
-                authStatus.textContent = `Conectado como: ${user.email}`;
+                const statusText = `Conectado como: ${user.email}`;
+                authStatus.textContent = statusText;
+                authStatusMobile.textContent = statusText; // (NUEVO)
                 
                 // Comprobar si es Admin
                 if (user.email === 'arielcapdevilagarcia@gmail.com') {
@@ -441,15 +481,17 @@
             }
         });
 
-        // Manejar click de Cerrar Sesión
-        logoutBtn.addEventListener('click', async () => {
+        // Manejar click de Cerrar Sesión (ambos botones)
+        const handleSignOut = async () => {
             try {
                 await signOut(auth);
                 // onAuthStateChanged se encargará de la redirección
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
             }
-        });
+        };
+        logoutBtn.addEventListener('click', handleSignOut);
+        logoutBtnMobile.addEventListener('click', handleSignOut); // (NUEVO)
 
 
         // --- Lógica de Firestore (Listeners en tiempo real) ---
@@ -465,18 +507,28 @@
                     const data = docSnap.data();
                     currentUserCoins = data.coins || 0;
                     userCoinsDisplay.textContent = currentUserCoins;
+                    userCoinsMobile.textContent = currentUserCoins; // (NUEVO)
                 } else {
-                    console.warn("Perfil de usuario no encontrado, esto no debería pasar si el registro fue correcto.");
+                    console.warn("Perfil de usuario no encontrado.");
                     userCoinsDisplay.textContent = '0';
+                    userCoinsMobile.textContent = '0'; // (NUEVO)
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
             });
 
             // 2. Cargar modelos desde la API (Worker)
-            await fetchModelsFromAPI();
+            // (Se llama sin término de búsqueda para cargar /popular al inicio)
+            await fetchModelsFromAPI('');
 
-            // 3. Si es Admin, cargar TODOS los pedidos
+            // 3. Listener para la barra de búsqueda (NUEVO)
+            searchBar.addEventListener('search', (e) => {
+                // e.target.value estará vacío si el usuario borra la búsqueda
+                // o tendrá el término si presiona Enter.
+                fetchModelsFromAPI(e.target.value);
+            });
+
+            // 4. Si es Admin, cargar TODOS los pedidos
             if (isAdmin) {
                 const allOrdersRef = collection(db, `/artifacts/${appId}/public/allOrders`);
                 onSnapshot(query(allOrdersRef), (snapshot) => {
@@ -490,35 +542,23 @@
         }
 
         // --- Carga de Modelos desde API (Worker) ---
-
+        // (ACTUALIZADO para manejar la búsqueda)
         async function fetchModelsFromAPI(searchTerm = '') {
             storeLoading.style.display = 'flex';
             modelsGrid.innerHTML = '';
             
-            // TODO: El worker '3d.logise1123.workers.dev' solo soporta /popular
-            // Si el worker se actualiza para soportar búsqueda:
-            // let apiEndpoint = `${workerUrl}/popular`;
-            // if (searchTerm) {
-            //     apiEndpoint = `${workerUrl}/search?query=${encodeURIComponent(searchTerm)}`;
-            // }
-
-            // Por ahora, solo usamos /popular
             let apiEndpoint = `${workerUrl}/popular`;
             if (searchTerm) {
-                console.warn("La búsqueda aún no está implementada en este ejemplo de worker, mostrando populares.");
+                // Si hay un término de búsqueda, usa el endpoint de búsqueda
+                apiEndpoint = `${workerUrl}/search?query=${encodeURIComponent(searchTerm)}`;
             }
             
             try {
-                // Usamos nuestro worker, ya no necesitamos el proxy ni el token
                 const response = await fetch(apiEndpoint);
                 
                 if (!response.ok) {
-                    const errorText = await response.text();
-                    // Detectar el error "You can on"
-                    if (errorText.includes("You can on")) {
-                         throw new Error(`Error de la API: ${errorText} (JSON no válido)`);
-                    }
-                    throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `Error HTTP: ${response.status}`);
                 }
                 
                 const thingiverseModels = await response.json().catch(e => {
@@ -528,24 +568,22 @@
                 
                 // Adaptar los datos de Thingiverse
                 const models = thingiverseModels.map(thing => {
-                    // Usar la imagen de mayor calidad si existe, si no, la miniatura
                     const imageUrl = thing.default_image?.url || thing.thumbnail;
                     
                     return {
                         id: thing.id,
                         name: thing.name,
-                        description: `Autor: ${thing.creator.name} (vía Thingiverse)`,
+                        description: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
                         imageUrl: imageUrl
-                        // El precio se calcula al hacer clic en "Detalles"
                     };
                 });
 
                 renderModels(models); 
-                storeLoading.style.display = 'none'; // Ocultar spinner
+                storeLoading.style.display = 'none';
 
             } catch (error) {
                 console.error("Error al cargar modelos desde el Worker:", error);
-                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar desde Thingiverse:</b><br>${error.message}<br><br>Inténtalo de nuevo más tarde.</p>`;
+                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar modelos:</b><br>${error.message}</p>`;
             }
         }
 
@@ -553,7 +591,7 @@
         // --- Funciones de Renderizado ---
 
         function renderModels(models) {
-            modelsGrid.innerHTML = ''; // Limpiar parrilla
+            modelsGrid.innerHTML = ''; 
             if (models.length === 0) {
                 modelsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">No se encontraron modelos.</p>';
                 return;
@@ -569,7 +607,6 @@
                             <h3 class="text-xl font-bold text-gray-900">${model.name}</h3>
                             <p class="text-gray-600 text-sm mt-2 flex-grow">${model.description}</p>
                             <div class="mt-4 flex justify-end items-center">
-                                <!-- Botón de Detalles (reemplaza al de Comprar) -->
                                 <button 
                                     class="details-btn inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                     data-id="${model.id}"
@@ -631,7 +668,7 @@
         backToStoreBtn.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
 
         // --- Lógica de la Vista de Detalles ---
-
+        // (ACTUALIZADO para usar el worker para calcular precio)
         async function openDetailsView(e) {
             const { id, name, img, desc } = e.target.dataset;
             
@@ -651,82 +688,37 @@
             detailsPriceError.textContent = '';
             openPurchaseModalBtn.disabled = true;
 
-            // --- Cálculo de Precio (Llamada 2: IA de Pollinations) ---
-            const token = '25eMuLLjvFlPA9iw'; // Tu token de API
-            const seed = 42;
-            const aiApiUrl = `https://text.pollinations.ai/openai?token=${token}&seed=${seed}`;
-
-            // Prompt para la IA (incluyendo el nombre)
-            const prompt = `Actúa como un tasador experto en impresión 3D. 
-            Quiero que estimes un precio base de impresión para el modelo llamado "${name}".
-            Basándote en la imagen, estima un precio justo en "monedas" (un número entre 50 y 500) según su aparente complejidad y tamaño. 
-            Responde ÚNICAMENTE con el número del precio. 
-            NO añadas texto, solo el número. Ejemplo: 120`;
-
-            // Payload para la API de OpenAI
-            const payload = {
-                "model": "gpt-4-vision-preview",
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": prompt
-                    },
-                    {
-                        "role": "user",
-                        "content": [
-                            {
-                                "type": "text",
-                                "text": "Estima el precio para esta imagen:"
-                            },
-                            {
-                                "type": "image_url",
-                                "image_url": { "url": img } // Formato de objeto corregido
-                            }
-                        ]
-                    }
-                ],
-                "max_tokens": 10
-            };
-
+            // --- Cálculo de Precio (Llamada 2: Worker) ---
             try {
-                // Hacemos la llamada POST directa (sin proxy)
-                const response = await fetch(aiApiUrl, {
+                // Hacemos la llamada POST a nuestro worker
+                const response = await fetch(`${workerUrl}/calculate-price`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ name: name, img: img })
                 });
 
                 if (!response.ok) {
                     const errorBody = await response.json();
-                    console.error("Error API (Pollinations):", errorBody);
-                    throw new Error(errorBody.details?.error?.message || `Error HTTP ${response.status}`);
+                    throw new Error(errorBody.error || `Error HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
                 
-                // Extraer la respuesta de la IA
-                let priceText = data.choices?.[0]?.message?.content || '50';
-                priceText = priceText.replace(/\D/g, ''); // Limpiar y quedarse solo con números
-                
-                let basePrice = parseInt(priceText, 10);
-
-                if (isNaN(basePrice) || basePrice < 50) {
-                    basePrice = 50; // Precio mínimo si la IA falla
-                    detailsPriceError.textContent = 'La IA falló, usando precio base.';
+                if (data.error) {
+                    throw new Error(data.error);
                 }
 
-                // --- PRECIO TRIPLICADO ---
-                currentCalculatedPrice = basePrice * 3; 
+                currentCalculatedPrice = data.calculatedPrice;
 
                 // Actualizar UI de Detalles
                 detailsPriceText.textContent = currentCalculatedPrice;
 
             } catch (error) {
-                console.error("Error al calcular el precio con IA:", error);
+                console.error("Error al calcular el precio con el Worker:", error);
                 
-                // --- PRECIO TRIPLICADO (Fallback) ---
+                // Fallback (mismo que antes)
                 currentCalculatedPrice = 50 * 3; // 50 (base) * 3
                 
                 detailsPriceText.textContent = currentCalculatedPrice;
@@ -748,6 +740,7 @@
             const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
             const totalPrice = basePrice + colorFee;
 
+            // Actualizado para usar el precio base (ya multiplicado * 3)
             priceSummaryBase.textContent = `${basePrice} monedas`;
             priceSummaryFee.textContent = `+ ${colorFee} monedas`;
             priceSummaryTotal.textContent = `${totalPrice} monedas`;
@@ -787,7 +780,24 @@
             if (!currentModelToPurchase || !userId) return;
 
             const { basePrice, colorFee, totalPrice } = updatePriceSummary();
-            const selectedColor = colorPicker.value;
+            
+            // (ACTUALIZADO) Mapear el valor del color a su representación hexadecimal
+            const colorMap = {
+                "Rojo": "#EF4444",
+                "Naranja": "#F97316",
+                "Amarillo": "#EAB308",
+                "Verde": "#22C55E",
+                "Azul claro": "#3B82F6",
+                "Azul oscuro": "#1D4ED8",
+                "Morado": "#8B5CF6",
+                "Rosa": "#EC4899",
+                "Blanco": "#F9FAFB",
+                "Negro": "#1F2937",
+                "Gris (blando)": "#9CA3AF"
+            };
+            const selectedColorName = colorPicker.value;
+            const selectedColorHex = colorMap[selectedColorName] || '#9CA3AF'; // Fallback a gris
+
 
             // 1. Comprobar si el usuario tiene suficientes monedas
             if (currentUserCoins < totalPrice) {
@@ -814,7 +824,8 @@
                 const orderData = {
                     modelId: currentModelToPurchase.id, // ID de Thingiverse
                     modelName: currentModelToPurchase.name,
-                    color: selectedColor,
+                    colorName: selectedColorName, // (NUEVO)
+                    colorHex: selectedColorHex, // (NUEVO)
                     pricePaid: totalPrice,
                     status: 'Pendiente', // Estado inicial
                     createdAt: serverTimestamp(),
@@ -869,23 +880,26 @@
                 const order = docSnap.data();
                 const orderId = docSnap.id;
                 
+                // (ACTUALIZADO) Usar colorHex y colorName
+                const colorHex = order.colorHex || '#9ca3af'; 
+                const colorName = order.colorName || 'Color';
+
                 const card = `
-                    <div class="admin-order-card">
-                        <div class="card-left">
-                            <div class="color-dot" style="background-color: ${order.color};"></div>
+                    <div class="bg-white shadow rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full border border-gray-200" style="background-color: ${colorHex};" title="${colorName}"></div>
                             <div>
-                                <p class="font-bold">${order.modelName}</p>
-                                <p class="text-xs text-gray-600">${order.userEmail} (ID: ${order.modelId})</p>
+                                <p class="font-bold text-gray-900">${order.modelName}</p>
+                                <p class="text-xs text-gray-600">${order.userEmail} (Pagado: ${order.pricePaid})</p>
                             </div>
                         </div>
-                        <div class="card-right">
-                            <span class="price-tag">${order.pricePaid}</span>
-                            <select class="status-select" data-order-id="${orderId}">
+                        <div class="flex items-center justify-end space-x-3">
+                            <select class="status-select block w-full sm:w-auto rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" data-order-id="${orderId}">
                                 <option value="Pendiente" ${order.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                                 <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
                                 <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
                             </select>
-                            <button class="download-stl-btn" data-thing-id="${order.modelId}">
+                            <button class="download-stl-btn p-2 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200" data-thing-id="${order.modelId}" title="Descargar STL">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             </button>
                         </div>
@@ -946,7 +960,8 @@
                 // Si se especifica un email, buscar el
                 if (targetEmail) {
                     targetUserEmail = targetEmail;
-                    const lookupRef = doc(db, `/artifacts/${appId}/public/userLookup/${targetEmail}`);
+                    // (ACTUALIZADO) Ruta correcta a la tabla de búsqueda pública
+                    const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
                     const lookupSnap = await getDoc(lookupRef);
                     if (!lookupSnap.exists()) {
                         throw new Error("Usuario no encontrado con ese email.");
@@ -984,6 +999,8 @@
             const button = e.currentTarget;
             const thingId = button.dataset.thingId;
             button.disabled = true;
+            // (ACTUALIZADO) Reemplazar icono con spinner
+            const originalIcon = button.innerHTML;
             button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-blue-500"></div>';
 
             // 1. Obtener la URL de descarga (desde nuestro worker)
@@ -1023,11 +1040,12 @@
 
             } catch (error) {
                 console.error("Error al descargar STL:", error);
-                alert(`Error al descargar el archivo: ${error.message}`);
+                // (ACTUALIZADO) No usar alert()
+                detailsPriceError.textContent = `Error al descargar: ${error.message}`;
             } finally {
                 // Restaurar botón
                 button.disabled = false;
-                button.innerHTML = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+                button.innerHTML = originalIcon;
             }
         }
     </script>
