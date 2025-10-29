@@ -666,16 +666,16 @@
                 // Adaptar los datos (ya deberían tener el formato correcto)
                 const models = featuredModels.map(thing => {
                     // Usar la imagen de mayor calidad si existe, si no, la miniatura
-                    const imageUrl = thing.default_image?.url || thing.thumbnail;
+                    const rawImageUrl = thing.default_image?.url || thing.thumbnail;
                     
-                    // (FIX) Corregir URL de imagen pixelada
-                    const highResImgUrl = imageUrl.replace('_display_large', '_featured_large');
+                    // (FIX #1) Corregir URL de imagen pixelada y manejar 'undefined'
+                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('_display_large', '_featured_large') : ''; // Si rawImageUrl es undefined, usa ''
 
                     return {
                         id: thing.id,
                         name: thing.name,
                         description: `Autor: ${thing.creator.name} (vía Thingiverse)`,
-                        imageUrl: highResImgUrl // Usar la URL corregida
+                        imageUrl: highResImgUrl // Usar la URL corregida (o '' que será manejada por renderModels)
                     };
                 });
 
@@ -713,13 +713,10 @@
                 // Adaptar los datos
                 const models = thingiverseModels.map(thing => {
                     // La búsqueda SÓLO devuelve 'thumbnail'
-                    const imageUrl = thing.thumbnail;
+                    const rawImageUrl = thing.thumbnail;
                     
-                    // (FIX) Intentar adivinar la URL de alta calidad
-                    // Reemplazar: https://cdn.thingiverse.com/renders/xx/xx/xx/xx/xx/thumbnail.jpg
-                    // Por:        https://cdn.thingiverse.com/renders/xx/xx/xx/xx/xx/large_display.jpg
-                    // O una versión más grande: .../featured_large.jpg
-                    const highResImgUrl = imageUrl.replace('thumbnail', 'featured_large');
+                    // (FIX #1) Intentar adivinar la URL de alta calidad y manejar 'undefined'
+                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('thumbnail', 'featured_large') : '';
                     
                     return {
                         id: thing.id,
@@ -1140,11 +1137,14 @@
                 const isKeychain = order.modelId === 'CUSTOM_KEYCHAIN';
                 const modelTitle = isKeychain ? `${order.modelName} ("${order.customText}")` : order.modelName;
                 const modelIdText = isKeychain ? order.customText : `ID: ${order.modelId}`;
+                
+                // (FIX #2) Fallback por si el color es undefined
+                const orderColor = order.color || 'gray';
 
                 const card = `
                     <div class="admin-order-card bg-white p-4 rounded-lg shadow flex items-center justify-between space-x-4">
                         <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-full border" style="background-color: ${order.color.toLowerCase()};" title="${order.color}"></div>
+                            <div class="w-8 h-8 rounded-full border" style="background-color: ${orderColor.toLowerCase()};" title="${orderColor}"></div>
                             <div>
                                 <p class="font-bold text-gray-900">${modelTitle}</p>
                                 <p class="text-xs text-gray-600">${order.userEmail || 'Email no disponible'}</p>
