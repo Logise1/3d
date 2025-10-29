@@ -46,6 +46,14 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* Estilos para la barra de navegación móvil */
+        .mobile-nav-link {
+            @apply flex flex-col items-center justify-center text-gray-500 flex-1 py-2;
+        }
+        .mobile-nav-link.active {
+            @apply text-blue-600;
+        }
     </style>
 </head>
 <body class="antialiased text-gray-800">
@@ -108,8 +116,8 @@
     <!-- Contenedor principal de la App (Oculto por defecto) -->
     <div id="app-container" class="min-h-screen hidden">
 
-        <!-- Barra de Navegación -->
-        <nav class="bg-white shadow-md sticky top-0 z-20">
+        <!-- Barra de Navegación (visible en escritorio) -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 hidden sm:block">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
                     <!-- Logo/Título -->
@@ -126,7 +134,7 @@
                         <a href="#" id="nav-orders" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Mis Pedidos
                         </a>
-                        <!-- NUEVO: Pestaña de Admin Pedidos -->
+                        <!-- Pestaña de Admin Pedidos -->
                         <a href="#" id="nav-admin-orders" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Pedidos (Admin)
                         </a>
@@ -152,7 +160,7 @@
         </nav>
 
         <!-- Contenido Principal -->
-        <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-8">
 
             <!-- Vista de la Tienda (Visible por defecto) -->
             <div id="store-view">
@@ -197,7 +205,7 @@
                             <div class="mt-8">
                                 <div class="bg-gray-100 rounded-lg p-6">
                                     <div class="flex justify-between items-center mb-4">
-                                        <span class="text-xl font-medium text-gray-700">Precio:</span>
+                                        <span class="text-xl font-medium text-gray-700">Precio Base:</span>
                                         <!-- Precio y Spinner -->
                                         <div id="details-price-container" class="flex items-center text-3xl font-bold text-yellow-800">
                                             <div id="details-price-spinner" class="loader !w-8 !h-8 !border-2 !border-t-blue-500 mr-2"></div>
@@ -233,7 +241,7 @@
                 </div>
             </div>
 
-            <!-- NUEVO: Vista de Pedidos del Admin (Oculta por defecto) -->
+            <!-- Vista de Pedidos del Admin (Oculta por defecto) -->
             <div id="admin-orders-view" class="hidden">
                 <h1 class="text-3xl font-bold text-gray-900 mb-6">Todos los Pedidos de Usuarios</h1>
 
@@ -258,7 +266,7 @@
                     <form id="add-coins-form" class="space-y-4 max-w-md mx-auto">
                         <h3 class="text-xl font-semibold">Modificar Monedas de Usuario</h3>
                         
-                        <!-- NUEVO: Input de Email -->
+                        <!-- Input de Email -->
                         <div>
                             <label for="target-user-email" class="block text-sm font-medium text-gray-700">Email del Usuario (dejar vacío para ti)</label>
                             <input type="email" id="target-user-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="ejemplo@email.com">
@@ -272,7 +280,7 @@
                             Modificar Monedas
                         </button>
 
-                        <!-- NUEVO: Mensaje de admin -->
+                        <!-- Mensaje de admin -->
                         <p id="admin-message" class="text-sm mt-2 text-center"></p>
                     </form>
 
@@ -369,7 +377,7 @@
                                 <!-- Resumen de Precio -->
                                 <div class="mt-4 p-3 bg-gray-50 rounded-md space-y-1 text-sm">
                                     <div class="flex justify-between">
-                                        <span>Precio Base:</span>
+                                        <span>Precio Base (x3):</span>
                                         <span id="price-summary-base" class="font-medium">...</span>
                                     </div>
                                     <div class="flex justify-between">
@@ -400,6 +408,27 @@
             </div>
         </div>
     </div>
+
+    <!-- NUEVO: Barra de Navegación Móvil -->
+    <nav id="mobile-nav" class="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex z-30">
+        <!-- Enlace Mis Pedidos -->
+        <a href="#" id="mobile-nav-orders" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span class="text-xs">Mis Pedidos</span>
+        </a>
+        
+        <!-- Enlace Tienda (Home) -->
+        <a href="#" id="mobile-nav-store" class="mobile-nav-link active">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="text-xs">Tienda</span>
+        </a>
+        
+        <!-- Enlace Pedidos (Admin) -->
+        <a href="#" id="mobile-nav-admin-orders" class="mobile-nav-link hidden">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="text-xs">Admin</span>
+        </a>
+    </nav>
 
 
     <!-- Script de Firebase -->
@@ -491,13 +520,20 @@
         const authMessage = document.getElementById('auth-message');
         const logoutBtn = document.getElementById('logout-btn');
 
-        // Navegación
+        // Navegación (Escritorio)
         const navStore = document.getElementById('nav-store');
         const navOrders = document.getElementById('nav-orders');
-        const navAdminOrders = document.getElementById('nav-admin-orders'); // NUEVO
+        const navAdminOrders = document.getElementById('nav-admin-orders'); 
+        
+        // Navegación (Móvil)
+        const mobileNavStore = document.getElementById('mobile-nav-store');
+        const mobileNavOrders = document.getElementById('mobile-nav-orders');
+        const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
+        
+        // Vistas
         const storeView = document.getElementById('store-view');
         const ordersView = document.getElementById('orders-view');
-        const adminOrdersView = document.getElementById('admin-orders-view'); // NUEVO
+        const adminOrdersView = document.getElementById('admin-orders-view'); 
         
         // Tienda
         const searchBar = document.getElementById('search-bar');
@@ -507,7 +543,8 @@
         // Pedidos
         const ordersList = document.getElementById('orders-list');
         const ordersLoading = document.getElementById('orders-loading');
-        const adminOrdersList = document.getElementById('admin-orders-list'); // NUEVO
+        const adminOrdersList = document.getElementById('admin-orders-list'); 
+        const adminOrdersLoading = document.getElementById('admin-orders-loading');
         
         // Vista de Detalles
         const detailsView = document.getElementById('details-view');
@@ -542,11 +579,10 @@
         // Admin
         const adminPanel = document.getElementById('admin-panel');
         const addCoinsForm = document.getElementById('add-coins-form');
-        const adminMessage = document.getElementById('admin-message'); // NUEVO
+        const adminMessage = document.getElementById('admin-message'); 
 
         // --- Lógica de Autenticación ---
 
-        // Listener del estado de autenticación
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // Usuario está conectado
@@ -554,19 +590,19 @@
                 currentUserEmail = user.email; // Guardar email
                 authStatus.textContent = `Conectado como: ${user.email}`;
                 
-                // Ocultar auth, mostrar app
                 authContainer.style.display = 'none';
                 appContainer.style.display = 'block';
                 
-                // Configurar listeners de datos para este usuario
                 await setupUserListeners(userId);
 
                 // Comprobar si es admin
-                adminPanel.style.display = 'none'; // Ocultar por defecto
-                navAdminOrders.style.display = 'none'; // Ocultar por defecto
+                adminPanel.style.display = 'none'; 
+                navAdminOrders.style.display = 'none';
+                mobileNavAdminOrders.style.display = 'none'; // Ocultar en móvil
                 if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
                     adminPanel.style.display = 'block';
-                    navAdminOrders.style.display = 'inline-flex'; // Mostrar pestaña admin
+                    navAdminOrders.style.display = 'inline-flex'; 
+                    mobileNavAdminOrders.style.display = 'flex'; // Mostrar en móvil
                 }
                 
             } else {
@@ -576,62 +612,53 @@
                 authStatus.textContent = 'Por favor, inicia sesión.';
                 userCoinsDisplay.textContent = '0';
 
-                // Mostrar auth, ocultar app
                 authContainer.style.display = 'flex';
                 appContainer.style.display = 'none';
 
-                // Ocultar panel admin al desconectar
                 adminPanel.style.display = 'none';
                 navAdminOrders.style.display = 'none';
+                mobileNavAdminOrders.style.display = 'none'; // Ocultar en móvil
             }
         });
 
-        // Manejar envío de formulario de Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            isNewUser = false; // No es usuario nuevo si hace login
+            isNewUser = false; 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
-            authMessage.textContent = ''; // Limpiar mensaje de error
+            authMessage.textContent = ''; 
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged se encargará del resto
             } catch (error) {
                 console.error("Error de inicio de sesión:", error.code);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
             }
         });
 
-        // Manejar envío de formulario de Registro
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            isNewUser = true; // Marcar como usuario nuevo
+            isNewUser = true; 
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            authMessage.textContent = ''; // Limpiar mensaje de error
+            authMessage.textContent = ''; 
             
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged se encargará del resto
-                // El listener 'setupUserListeners' creará el perfil con 0 monedas
             } catch (error) {
                 console.error("Error de registro:", error.code);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
             }
         });
 
-        // Manejar click de Cerrar Sesión
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                // onAuthStateChanged se encargará de limpiar la UI
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
             }
         });
 
-        // Cambiar entre formularios de login y registro
         showRegister.addEventListener('click', (e) => {
             e.preventDefault();
             loginForm.classList.add('hidden');
@@ -646,11 +673,10 @@
             authMessage.textContent = '';
         });
 
-        // Función para traducir errores de Firebase
         function getFirebaseAuthErrorMessage(errorCode) {
             switch (errorCode) {
                 case 'auth/user-not-found':
-                case 'auth/invalid-credential': // Error más común para login incorrecto
+                case 'auth/invalid-credential': 
                     return 'Correo o contraseña incorrecta. Inténtalo de nuevo.';
                 case 'auth/wrong-password':
                     return 'Contraseña incorrecta. Inténtalo de nuevo.';
@@ -686,14 +712,14 @@
                         // Crear perfil privado
                         await setDoc(userProfileRef, { 
                             userId: currentUserId,
-                            email: auth.currentUser.email, // Guardar el email en el perfil
-                            coins: 0, // MODIFICADO: Empezar con 0 monedas
+                            email: auth.currentUser.email, 
+                            coins: 0, // Empezar con 0 monedas
                             createdAt: serverTimestamp()
                         });
                         currentUserCoins = 0;
                         userCoinsDisplay.textContent = currentUserCoins;
 
-                        // NUEVO: Crear entrada en la tabla pública de búsqueda
+                        // Crear entrada en la tabla pública de búsqueda
                         const userLookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${auth.currentUser.email}`);
                         await setDoc(userLookupRef, { userId: currentUserId });
                         console.log("Public user lookup created.");
@@ -730,12 +756,12 @@
                 ordersLoading.innerHTML = '<p class="text-red-500">Error al cargar tus pedidos.</p>';
             });
 
-            // 4. NUEVO: Listener para TODOS los pedidos (solo si es admin)
+            // 4. Listener para TODOS los pedidos (solo si es admin)
             if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
                 const allOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
                 onSnapshot(query(allOrdersRef), (snapshot) => {
                     renderAdminOrders(snapshot.docs);
-                    document.getElementById('admin-orders-loading').style.display = 'none';
+                    adminOrdersLoading.style.display = 'none';
                 }, (error) => {
                     console.error("Error en listener de admin-pedidos:", error);
                     adminOrdersList.innerHTML = '<p class="text-red-500">Error al cargar pedidos.</p>';
@@ -807,7 +833,6 @@
             }
         }
 
-        // Función ayudante para adaptar la respuesta de la API
         function adaptThingiverseModel(thing) {
             const imageUrl = thing.default_image?.url || thing.thumbnail;
             
@@ -861,7 +886,6 @@
             });
         }
 
-        // Renderizado para el usuario normal
         function renderOrders(docs) {
             ordersList.innerHTML = ''; 
             if (docs.length === 0) {
@@ -886,15 +910,15 @@
                 const colorName = order.colorName || 'Color';
 
                 const orderItem = `
-                    <div class="bg-white rounded-lg shadow-md p-4 flex items-center justify-between">
-                        <div class="flex items-center space-x-4">
+                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row sm:items-center justify-between">
+                        <div class="flex items-center space-x-4 mb-3 sm:mb-0">
                             <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${colorHex};" title="${colorName}"></div>
                             <div>
                                 <p class="text-lg font-semibold">${order.modelName}</p>
                                 <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
                             </div>
                         </div>
-                        <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass}">
+                        <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass} self-start sm:self-auto">
                             ${order.status}
                         </span>
                     </div>
@@ -903,7 +927,6 @@
             });
         }
 
-        // NUEVO: Renderizado para el admin
         function renderAdminOrders(docs) {
             adminOrdersList.innerHTML = '';
             if (docs.length === 0) {
@@ -917,12 +940,9 @@
                 const order = doc.data();
                 const publicId = doc.id; // ID del doc público
                 
-                const statusClass = order.status === 'Pendiente' ? 'bg-yellow-100 text-yellow-800' :
-                                  order.status === 'Imprimiendo' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-green-100 text-green-800';
-                
                 const item = `
                     <div class="bg-white rounded-lg shadow-md p-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <!-- Info del Pedido -->
                         <div class="flex items-center space-x-4 mb-4 sm:mb-0">
                             <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${order.colorHex};" title="${order.colorName}"></div>
                             <div>
@@ -931,11 +951,9 @@
                                 <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
                             </div>
                         </div>
-                        <div class="flex items-center space-x-4">
-                            <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass} sm:hidden">
-                                ${order.status}
-                            </span>
-                            <select class="status-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                        <!-- Acciones del Admin -->
+                        <div class="flex items-center space-x-2 sm:space-x-4 self-end sm:self-center">
+                            <select class="status-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
                                 data-public-id="${publicId}"
                                 data-private-id="${order.privateOrderId}"
                                 data-user-id="${order.userId}"
@@ -944,6 +962,14 @@
                                 <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
                                 <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
                             </select>
+                            
+                            <!-- Botón de Descarga STL -->
+                            <button class="download-stl-btn p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center w-10 h-10"
+                                data-model-id="${order.modelId}"
+                                title="Descargar .STL">
+                                <!-- Icono de Descarga SVG -->
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -954,9 +980,13 @@
             adminOrdersList.querySelectorAll('.status-select').forEach(select => {
                 select.addEventListener('change', handleStatusChange);
             });
+            
+            // Añadir listeners a los botones de descarga
+            adminOrdersList.querySelectorAll('.download-stl-btn').forEach(button => {
+                button.addEventListener('click', handleDownloadStl);
+            });
         }
 
-        // NUEVO: Handler para el cambio de estado del admin
         async function handleStatusChange(e) {
             const newStatus = e.target.value;
             const { publicId, privateId, userId } = e.target.dataset;
@@ -966,7 +996,7 @@
                 return;
             }
             
-            e.target.disabled = true; // Deshabilitar mientras se guarda
+            e.target.disabled = true; 
             
             try {
                 // 1. Actualizar el doc público
@@ -981,7 +1011,54 @@
             } catch (error) {
                 console.error("Error al actualizar el estado:", error);
             } finally {
-                e.target.disabled = false; // Rehabilitar
+                e.target.disabled = false; 
+            }
+        }
+
+        async function handleDownloadStl(e) {
+            const button = e.currentTarget;
+            const { modelId } = button.dataset;
+
+            button.disabled = true;
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-white"></div>'; 
+
+            try {
+                const filesApiUrl = `${codetabsProxy}https://api.thingiverse.com/things/${modelId}/files?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+                const filesResponse = await fetch(filesApiUrl);
+                if (!filesResponse.ok) throw new Error('No se pudo obtener la lista de archivos.');
+                
+                const files = await filesResponse.json();
+                if (!files || files.length === 0) throw new Error('Este modelo no tiene archivos.');
+
+                let fileToDownload = files.find(f => f.name.toLowerCase().endsWith('.stl')) ||
+                                     files.find(f => f.name.toLowerCase().endsWith('.obj'));
+
+                if (!fileToDownload || !fileToDownload.download_url) throw new Error('No se encontró un archivo .stl o .obj descargable.');
+                
+                const downloadUrl = fileToDownload.download_url;
+                const fileName = fileToDownload.name;
+
+                const fileBlobResponse = await fetch(`${codetabsProxy}${downloadUrl}`);
+                if (!fileBlobResponse.ok) throw new Error('No se pudo descargar el archivo.');
+                
+                const blob = await fileBlobResponse.blob();
+
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName; 
+                document.body.appendChild(link);
+                link.click();
+                
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+
+            } catch (error) {
+                console.error("Error al descargar STL:", error);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalIcon;
             }
         }
 
@@ -993,38 +1070,52 @@
             storeView.style.display = 'none';
             ordersView.style.display = 'none';
             detailsView.style.display = 'none';
-            adminOrdersView.style.display = 'none'; // NUEVO
+            adminOrdersView.style.display = 'none'; 
             
-            // Quitar clase activa de todos los enlaces nav
+            // Quitar clase activa de nav de escritorio
             navStore.classList.remove('border-blue-500', 'text-gray-900');
             navStore.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
             navOrders.classList.remove('border-blue-500', 'text-gray-900');
             navOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-            navAdminOrders.classList.remove('border-blue-500', 'text-gray-900'); // NUEVO
-            navAdminOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700'); // NUEVO
+            navAdminOrders.classList.remove('border-blue-500', 'text-gray-900'); 
+            navAdminOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700'); 
+
+            // Quitar clase activa de nav móvil
+            mobileNavStore.classList.remove('active');
+            mobileNavOrders.classList.remove('active');
+            mobileNavAdminOrders.classList.remove('active');
 
             // Mostrar la vista seleccionada
             if (viewId === 'store') {
                 storeView.style.display = 'block';
                 navStore.classList.add('border-blue-500', 'text-gray-900');
                 navStore.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                mobileNavStore.classList.add('active');
             } else if (viewId === 'orders') {
                 ordersView.style.display = 'block';
                 navOrders.classList.add('border-blue-500', 'text-gray-900');
                 navOrders.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                mobileNavOrders.classList.add('active');
             } else if (viewId === 'details') {
                 detailsView.style.display = 'block';
-            } else if (viewId === 'admin-orders') { // NUEVO
+            } else if (viewId === 'admin-orders') { 
                 adminOrdersView.style.display = 'block';
                 navAdminOrders.classList.add('border-blue-500', 'text-gray-900');
                 navAdminOrders.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                mobileNavAdminOrders.classList.add('active');
             }
         }
 
+        // Listeners Navegación Escritorio
         navStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
         navOrders.addEventListener('click', (e) => { e.preventDefault(); showView('orders'); });
-        navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); }); // NUEVO
+        navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); }); 
         backToStoreBtn.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+
+        // Listeners Navegación Móvil
+        mobileNavStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        mobileNavOrders.addEventListener('click', (e) => { e.preventDefault(); showView('orders'); });
+        mobileNavAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
 
         // Listener para la barra de búsqueda
         searchBar.addEventListener('search', (e) => {
@@ -1092,22 +1183,26 @@
                     price = 50; 
                     detailsPriceError.textContent = 'IA no dio un precio. Usando 50.';
                 }
+                
+                // MODIFICADO: Triplicar el precio
+                const basePrice = price * 3;
 
-                detailsPriceText.textContent = price;
+                detailsPriceText.textContent = basePrice;
                 detailsPriceSpinner.style.display = 'none';
                 detailsPriceCurrency.classList.remove('hidden');
                 
-                openPurchaseModalBtn.dataset.price = price;
+                openPurchaseModalBtn.dataset.price = basePrice;
                 openPurchaseModalBtn.disabled = false; 
 
             } catch (error) {
                 console.error("Error al calcular el precio con IA:", error);
-                detailsPriceText.textContent = '50'; 
+                const basePrice = 50 * 3; // Precio base triplicado
+                detailsPriceText.textContent = basePrice; 
                 detailsPriceSpinner.style.display = 'none';
                 detailsPriceCurrency.classList.remove('hidden');
-                detailsPriceError.textContent = 'Error al calcular. Usando 50.';
+                detailsPriceError.textContent = 'Error al calcular. Usando 150.';
                 
-                openPurchaseModalBtn.dataset.price = 50;
+                openPurchaseModalBtn.dataset.price = basePrice;
                 openPurchaseModalBtn.disabled = false; 
             }
         }
@@ -1117,12 +1212,12 @@
 
         openPurchaseModalBtn.addEventListener('click', (e) => {
             const { id, name, price, img } = e.currentTarget.dataset;
-            const basePrice = parseInt(price, 10);
+            const basePrice = parseInt(price, 10); // Ya viene triplicado
             
             currentModelToPurchase = {
                 id: id,
                 name: name,
-                price: basePrice, 
+                price: basePrice, // Este es el precio base (ya x3)
                 img: img
             };
 
@@ -1143,10 +1238,10 @@
         function updatePriceSummary() {
             if (!currentModelToPurchase) return;
 
-            const basePrice = currentModelToPurchase.price;
+            const basePrice = currentModelToPurchase.price; // El precio base ya está triplicado
             const selectedOption = colorPicker.options[colorPicker.selectedIndex];
             const colorFee = parseInt(selectedOption.dataset.fee, 10) || 0;
-            const totalPrice = basePrice + colorFee;
+            const totalPrice = basePrice + colorFee; // Sumar la tarifa al precio base triplicado
 
             priceSummaryBase.textContent = `${basePrice} monedas`;
             priceSummaryFee.textContent = `+ ${colorFee} monedas`;
@@ -1175,7 +1270,7 @@
         async function handlePurchase() {
             if (!currentModelToPurchase || !userId) return;
 
-            const modelPrice = currentModelToPurchase.totalPrice;
+            const modelPrice = currentModelToPurchase.totalPrice; // Usar el precio total (base x3 + tarifa)
             const selectedColorName = currentModelToPurchase.colorName;
             const selectedColorHex = currentModelToPurchase.colorHex;
 
@@ -1212,7 +1307,7 @@
                 // 4. Crear doc PÚBLICO (para admin)
                 const publicOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
                 await addDoc(publicOrdersRef, {
-                    privateOrderId: privateOrderDoc.id, // ID del doc privado
+                    privateOrderId: privateOrderDoc.id, 
                     userId: userId,
                     userEmail: auth.currentUser.email,
                     modelId: currentModelToPurchase.id, 
@@ -1255,7 +1350,7 @@
 
         addCoinsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            adminMessage.textContent = ''; // Limpiar mensaje
+            adminMessage.textContent = ''; 
             
             const amount = parseInt(document.getElementById('coins-amount').value);
             const targetEmail = document.getElementById('target-user-email').value.trim();
@@ -1266,7 +1361,7 @@
                 return;
             }
             
-            let targetUserId = userId; // Por defecto, el admin
+            let targetUserId = userId; 
             let targetProfileRef;
 
             try {
