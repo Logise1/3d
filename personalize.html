@@ -230,12 +230,14 @@
                                 <div>
                                     <div id="details-price-container" class="flex items-center text-3xl font-bold text-gray-900">
                                         <!-- No hay spinner, el precio es instantáneo -->
-                                        <span id="details-price-text">140</span>
+                                        <!-- (PRECIO ACTUALIZADO) 500 + 4*50 = 700 -->
+                                        <span id="details-price-text">700</span>
                                         <span id="details-price-currency" class="ml-1.5 text-yellow-800">
                                             <svg class="w-7 h-7 inline-block -mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
                                         </span>
                                     </div>
-                                    <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1">(aprox. 0.56€)</div>
+                                    <!-- (PRECIO ACTUALIZADO) 700 / 250 = 2.80 -->
+                                    <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1">(aprox. 2.80€)</div>
                                     <div id="details-price-error" class="text-sm text-red-600 ml-1 mt-1"></div>
                                 </div>
 
@@ -260,8 +262,9 @@
                                 <!-- Resumen de Precio -->
                                 <div class="pt-4 border-t space-y-2 text-sm">
                                     <div class="flex justify-between">
-                                        <span class="text-gray-600">Precio Base (100 + 10/letra):</span>
-                                        <span id="price-summary-base" class="font-medium">140 monedas</span>
+                                        <span class="text-gray-600">Precio Base (500 + 50/letra):</span>
+                                        <!-- (PRECIO ACTUALIZADO) -->
+                                        <span id="price-summary-base" class="font-medium">700 monedas</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Tarifa de Color:</span>
@@ -269,7 +272,8 @@
                                     </div>
                                     <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
                                         <span>Precio Total:</span>
-                                        <span id="price-summary-total">140 monedas</span>
+                                        <!-- (PRECIO ACTUALIZADO) -->
+                                        <span id="price-summary-total">700 monedas</span>
                                     </div>
                                 </div>
 
@@ -439,8 +443,10 @@
         let isAdmin = false;
         let currentUserCoins = 0;
         let currentPurchaseDetails = {}; // { basePrice, colorFee, totalPrice, selectedColor, customText }
-        const KEYCHAIN_BASE_PRICE = 100;
-        const KEYCHAIN_PRICE_PER_CHAR = 10;
+        
+        // (PRECIOS ACTUALIZADOS)
+        const KEYCHAIN_BASE_PRICE = 500;
+        const KEYCHAIN_PRICE_PER_CHAR = 50;
         
         // --- Elementos del DOM ---
         // Headers Escritorio
@@ -562,7 +568,7 @@
             const text = keychainTextInput.value.toUpperCase() || 'TEXTO';
             keychainTextPreview.textContent = text;
 
-            // Calcular precio base
+            // Calcular precio base (con los nuevos precios)
             const charCount = text === 'TEXTO' ? 4 : text.length; // Contar "TEXTO" como 4
             const basePrice = KEYCHAIN_BASE_PRICE + (charCount * KEYCHAIN_PRICE_PER_CHAR);
             
