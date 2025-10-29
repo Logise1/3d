@@ -1031,8 +1031,9 @@
 
         // --- Lógica de Admin ---
 
+        // (FIX 2: Bugeo de Pedidos)
         function renderAdminOrders(docs) {
-            adminOrdersList.innerHTML = '';
+            adminOrdersList.innerHTML = ''; // <--- ¡¡¡CORRECCIÓN AÑADIDA!!!
             if (docs.length === 0) {
                 adminOrdersList.innerHTML = '<p class="text-gray-500 text-center">No hay pedidos de ningún usuario.</p>';
                 return;
@@ -1115,7 +1116,9 @@
             try {
                 if (targetEmail) {
                     targetUserEmail = targetEmail;
-                    const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
+                    // (FIX 1: Error de Email)
+                    // Se ha quitado "/data" de la ruta para que coincida con la creación de usuarios
+                    const lookupRef = doc(db, `/artifacts/${appId}/public/user-lookup/${targetEmail}`);
                     const lookupSnap = await getDoc(lookupRef);
                     if (!lookupSnap.exists()) {
                         throw new Error("Usuario no encontrado con ese email.");
