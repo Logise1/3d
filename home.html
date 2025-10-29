@@ -412,7 +412,8 @@
 
 
     <!-- Script de Firebase -->
-    <script type"module">
+    <!-- ESTA ES LA LÍNEA CORREGIDA -->
+    <script type="module">
         // Importar funciones de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
@@ -488,7 +489,7 @@
         const userCoinsMobile = document.getElementById('user-coins-mobile');
         const logoutBtnMobile = document.getElementById('logout-btn-mobile');
 
-        // Contenedores
+        // Contenedor
         const appContainer = document.getElementById('app-container');
 
         // Navegación
@@ -1135,14 +1136,19 @@
                 const order = docSnap.data();
                 const orderId = docSnap.id;
                 
+                // (NUEVO) Manejar llaveros personalizados
+                const isKeychain = order.modelId === 'CUSTOM_KEYCHAIN';
+                const modelTitle = isKeychain ? `${order.modelName} ("${order.customText}")` : order.modelName;
+                const modelIdText = isKeychain ? order.customText : `ID: ${order.modelId}`;
+
                 const card = `
                     <div class="admin-order-card bg-white p-4 rounded-lg shadow flex items-center justify-between space-x-4">
                         <div class="flex items-center space-x-3">
                             <div class="w-8 h-8 rounded-full border" style="background-color: ${order.color.toLowerCase()};" title="${order.color}"></div>
                             <div>
-                                <p class="font-bold text-gray-900">${order.modelName}</p>
+                                <p class="font-bold text-gray-900">${modelTitle}</p>
                                 <p class="text-xs text-gray-600">${order.userEmail || 'Email no disponible'}</p>
-                                <p class="text-xs text-gray-500">ID: ${order.modelId}</p>
+                                <p class="text-xs text-gray-500">${modelIdText}</p>
                             </div>
                         </div>
                         <div class="flex items-center space-x-3">
@@ -1152,7 +1158,8 @@
                                 <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
                                 <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
                             </select>
-                            <button class="download-stl-btn p-2 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700" title="Descargar STL" data-thing-id="${order.modelId}">
+                            <!-- (NUEVO) Ocultar descarga para llaveros -->
+                            <button class="download-stl-btn p-2 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 ${isKeychain ? 'hidden' : ''}" title="Descargar STL" data-thing-id="${order.modelId}">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             </button>
                         </div>
