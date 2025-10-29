@@ -568,13 +568,29 @@
                 
                 // Adaptar los datos de Thingiverse
                 const models = thingiverseModels.map(thing => {
-                    const imageUrl = thing.default_image?.url || thing.thumbnail;
                     
+                    // (NUEVA LÓGICA DE IMAGEN PARA ALTA CALIDAD)
+                    let imageUrl;
+                    
+                    if (thing.default_image?.url) {
+                        // Si existe la imagen por defecto (ej. desde /popular), usarla.
+                        // Esta URL ya suele ser de alta calidad (ej. _preview_featured.jpg)
+                        imageUrl = thing.default_image.url;
+                    } else if (thing.thumbnail) {
+                        // Si no hay imagen por defecto, pero sí miniatura (ej. desde /search)
+                        // Transformar la URL de la miniatura a una de mayor calidad.
+                        // Reemplazamos '_thumb_small.jpg' (o similar) por '_preview_featured.jpg'
+                        imageUrl = thing.thumbnail.replace(/_thumb_[a-zA-Z]+(\.jpg|\.png|\.gif)/i, '_preview_featured$1');
+                    } else {
+                        // Fallback por si no hay ninguna imagen
+                        imageUrl = null; 
+                    }
+
                     return {
                         id: thing.id,
                         name: thing.name,
                         description: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
-                        imageUrl: imageUrl
+                        imageUrl: imageUrl // Usar la URL procesada
                     };
                 });
 
