@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print3D Store - Tienda</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilo base con la fuente Inter */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* gris claro de fondo */
+        }
+        /* Estilos para el modal (reutilizados para bienvenida y compra) */
+        .modal {
+            transition: opacity 0.25s ease;
+        }
+        .modal-content {
+            transition: transform 0.25s ease;
+        }
+        .modal.hidden {
+            pointer-events: none;
+            opacity: 0;
+        }
+        .modal.hidden .modal-content {
+            transform: scale(0.95);
+        }
+        /* Estilo para el spinner de carga */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Estilos para la barra de navegación móvil */
+        .mobile-nav-link {
+            @apply flex flex-col items-center justify-center text-gray-500 flex-1 py-2;
+        }
+        .mobile-nav-link.active {
+            @apply text-blue-600;
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
+    <div id="app-container" class="min-h-screen hidden">
+
+        <!-- Barra de Navegación (visible en escritorio) -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 hidden sm:block">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Título -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span class="font-bold text-xl text-gray-900">Print3D Store</span>
+                    </div>
+                    
+                    <!-- Enlaces de Navegación -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="home.html" id="nav-store" class="nav-link border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Tienda
+                        </a>
+                        <a href="cart.html" id="nav-orders" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Mis Pedidos
+                        </a>
+                        <!-- Pestaña de Admin Pedidos -->
+                        <a href="#" id="nav-admin-orders" class_original="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Pedidos (Admin)
+                        </a>
+                    </div>
+
+                    <!-- Info de Usuario -->
+                    <div class="flex items-center">
+                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-4 py-1.5 mr-4">
+                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                            <span class="text-sm font-medium mr-1">Monedas:</span>
+                            <span id="user-coins" class="font-bold text-sm">...</span>
+                        </div>
+                        <button id="logout-btn" class="text-sm font-medium text-gray-500 hover:text-gray-700">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Info de Usuario y Carga (para mostrar mientras se conecta) -->
+            <div class="bg-gray-100 py-2 px-4 sm:px-6 lg:px-8 border-t border-gray-200">
+                <div class="container mx-auto flex justify-between items-center text-xs text-gray-600">
+                    <span id="auth-status">Verificando...</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-8">
+
+            <!-- Vista de la Tienda (Visible por defecto) -->
+            <div id="store-view">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Modelos Disponibles (desde Thingiverse)</h1>
+                
+                <!-- Barra de Búsqueda -->
+                <div class="mb-6">
+                    <input type="search" id="search-bar" placeholder="Buscar modelos por nombre..." class="w-full p-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                </div>
+
+                <!-- Spinner de Carga de la Tienda -->
+                <div id="store-loading" class="flex justify-center items-center h-64">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Parrilla de Modelos -->
+                <div id="models-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <!-- Las tarjetas de modelos se insertarán aquí por JS -->
+                </div>
+            </div>
+
+            <!-- Vista de Detalles del Producto (Oculta por defecto) -->
+            <div id="details-view" class="hidden">
+                <a href="home.html" id="back-to-store-btn" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                    &larr; Volver a la tienda
+                </a>
+
+                <div class="bg-white rounded-lg shadow-xl overflow-hidden">
+                    <div class="md:flex">
+                        <!-- Imagen del Producto -->
+                        <div class="md:w-1/2">
+                            <img id="details-img" src="https://placehold.co/800x600/e2e8f0/64748b?text=Cargando..." alt="Modelo 3D" class="w-full h-full object-cover">
+                        </div>
+                        
+                        <!-- Información y Compra -->
+                        <div class="md:w-1/2 p-8 flex flex-col justify-between">
+                            <div>
+                                <h1 id="details-name" class="text-4xl font-bold text-gray-900">Cargando nombre...</h1>
+                                <p id="details-desc" class="text-gray-600 text-base mt-4">Cargando descripción...</p>
+                            </div>
+                            
+                            <div class="mt-8">
+                                <div class="bg-gray-100 rounded-lg p-6">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <span class="text-xl font-medium text-gray-700">Precio Base:</span>
+                                        <!-- Precio y Spinner -->
+                                        <div id="details-price-container" class="flex items-center text-3xl font-bold text-yellow-800">
+                                            <div id="details-price-spinner" class="loader !w-8 !h-8 !border-2 !border-t-blue-500 mr-2"></div>
+                                            <span id="details-price-text">Calculando...</span>
+                                            <span id="details-price-currency" class="hidden ml-1">monedas</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div id="details-price-error" class="text-sm text-red-600 text-right -mt-2 mb-2"></div>
+
+                                    <button id="open-purchase-modal-btn" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400">
+                                        Proceder a la Compra
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de Pedidos del Admin (Oculta por defecto) -->
+            <div id="admin-orders-view" class="hidden">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Todos los Pedidos de Usuarios</h1>
+
+                <!-- Spinner de Carga de Pedidos -->
+                <div id="admin-orders-loading" class="flex justify-center items-center h-64">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Lista de Pedidos -->
+                <div id="admin-orders-list" class="space-y-4">
+                    <!-- Los pedidos de admin se insertarán aquí por JS -->
+                </div>
+            </div>
+
+
+            <!-- Panel de Administración (Oculto por defecto) -->
+            <details id="admin-panel" class="hidden mt-12 bg-white p-4 rounded-lg shadow">
+                <summary class="font-medium text-lg cursor-pointer">Panel de Administración</summary>
+                <div class="mt-4 grid grid-cols-1 gap-6 border-t pt-4">
+                    
+                    <!-- Formulario para Añadir/Quitar Monedas (MODIFICADO) -->
+                    <form id="add-coins-form" class="space-y-4 max-w-md mx-auto">
+                        <h3 class="text-xl font-semibold">Modificar Monedas de Usuario</h3>
+                        
+                        <!-- Input de Email -->
+                        <div>
+                            <label for="target-user-email" class="block text-sm font-medium text-gray-700">Email del Usuario (dejar vacío para ti)</label>
+                            <input type="email" id="target-user-email" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="ejemplo@email.com">
+                        </div>
+
+                        <div>
+                            <label for="coins-amount" class="block text-sm font-medium text-gray-700">Cantidad de Monedas (ej. 250 o -50)</label>
+                            <input type="number" id="coins-amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="250">
+                        </div>
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                            Modificar Monedas
+                        </button>
+
+                        <!-- Mensaje de admin -->
+                        <p id="admin-message" class="text-sm mt-2 text-center"></p>
+                    </form>
+
+                </div>
+            </details>
+
+        </main>
+    </div>
+
+    <!-- Modal de Compra (Oculto por defecto) -->
+    <div id="purchase-modal" class="modal hidden fixed inset-0 z-30 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <!-- Fondo oscuro del modal -->
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <!-- Contenido del Modal -->
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+            <div class="modal-content inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <!-- Icono de Cubo -->
+                            <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                        </div>
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Confirmar Pedido</h3>
+                            <div class="mt-4">
+                                <!-- Detalles del modelo -->
+                                <div class="flex items-center space-x-4">
+                                    <img id="modal-img" src="https://placehold.co/100x100" alt="Modelo" class="w-24 h-24 rounded-md object-cover">
+                                    <div>
+                                        <p id="modal-model-name" class="text-xl font-semibold">Nombre del Modelo</p>
+                                        <div class="flex items-center text-lg text-yellow-800">
+                                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                                            <span id="modal-model-price" class="font-bold">...</span>
+                                            <span class="ml-1">monedas (Base)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Selector de Color (MODIFICADO) -->
+                                <div class="mt-6">
+                                    <label for="color-picker" class="block text-sm font-medium text-gray-700">Elige un color para tu impresión:</label>
+                                    <select id="color-picker" name="color-picker" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                                        <option value="Rojo" data-fee="0">Rojo</option>
+                                        <option value="Naranja" data-fee="0">Naranja</option>
+                                        <option value="Amarillo" data-fee="0">Amarillo</option>
+                                        <option value="Verde" data-fee="0">Verde</option>
+                                        <option value="Azul claro" data-fee="0">Azul claro</option>
+                                        <option value="Azul oscuro" data-fee="0">Azul oscuro</option>
+                                        <option value="Morado" data-fee="0">Morado</option>
+                                        <option value="Rosa" data-fee="0">Rosa</option>
+                                        <option value="Blanco" data-fee="25">Blanco (+25 monedas)</option>
+                                        <option value="Negro" data-fee="0">Negro</option>
+                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+50 monedas)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Resumen de Precio -->
+                                <div class="mt-4 p-3 bg-gray-50 rounded-md space-y-1 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Precio Base (x3):</span>
+                                        <span id="price-summary-base" class="font-medium">...</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Tarifa de Color:</span>
+                                        <span id="price-summary-fee" class="font-medium">+ 0 monedas</span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-1 mt-1">
+                                        <span>Precio Total:</span>
+                                        <span id="price-summary-total">...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Mensajes de estado/error -->
+                                <div id="modal-message" class="mt-4 text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Botones de Acción del Modal -->
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button id="confirm-purchase-btn" type="button" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm">
+                        Confirmar Pedido
+                    </button>
+                    <button id="cancel-purchase-btn" type="button" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Barra de Navegación Móvil -->
+    <nav id="mobile-nav" class="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex z-30">
+        <!-- Enlace Mis Pedidos -->
+        <a href="cart.html" id="mobile-nav-orders" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span class="text-xs">Mis Pedidos</span>
+        </a>
+        
+        <!-- Enlace Tienda (Home) -->
+        <a href="home.html" id="mobile-nav-store" class="mobile-nav-link active">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="text-xs">Tienda</span>
+        </a>
+        
+        <!-- Enlace Pedidos (Admin) -->
+        <a href="#" id="mobile-nav-admin-orders" class="mobile-nav-link hidden">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="text-xs">Admin</span>
+        </a>
+    </nav>
+
+
+    <!-- Script de Firebase -->
+    <script type="module">
+        // Importar funciones de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            getDoc, 
+            setDoc, 
+            updateDoc, 
+            collection, 
+            addDoc,
+            onSnapshot, 
+            query,
+            serverTimestamp,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuración de Firebase ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+          authDomain: "dprinting-9b264.firebaseapp.com",
+          projectId: "dprinting-9b264",
+          storageBucket: "dprinting-9b264.firebasestorage.app",
+          messagingSenderId: "647333546063",
+          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+          measurementId: "G-FWKS2HB1SE"
+        };
+        
+        const appId = firebaseConfig.projectId || 'default-app-id';
+
+        // Inicializar Firebase
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug');
+            console.log("Firebase inicializado correctamente.");
+        } catch (error) {
+            console.error("Error al inicializar Firebase:", error);
+            document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
+        }
+
+        // --- Variables Globales del Script ---
+        const THINGIVERSE_ACCESS_TOKEN = '061cbc2ed2f6c164cd4172c14ba0fe7d'; 
+        const codetabsProxy = 'https://api.codetabs.com/v1/proxy?quest=';
+        
+        // --- Variables de Estado de la App ---
+        let userId = null;
+        let currentUserEmail = null; 
+        let currentUserCoins = 0;
+        let currentModelToPurchase = null;
+        let currentModelsData = []; 
+        
+        // --- Elementos del DOM ---
+        const authStatus = document.getElementById('auth-status');
+        const userCoinsDisplay = document.getElementById('user-coins');
+        const appContainer = document.getElementById('app-container');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Navegación (Escritorio)
+        const navStore = document.getElementById('nav-store');
+        const navOrders = document.getElementById('nav-orders');
+        const navAdminOrders = document.getElementById('nav-admin-orders'); 
+        
+        // Navegación (Móvil)
+        const mobileNavStore = document.getElementById('mobile-nav-store');
+        const mobileNavOrders = document.getElementById('mobile-nav-orders');
+        const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
+        
+        // Vistas
+        const storeView = document.getElementById('store-view');
+        const detailsView = document.getElementById('details-view');
+        const adminOrdersView = document.getElementById('admin-orders-view'); 
+        
+        // Tienda
+        const searchBar = document.getElementById('search-bar');
+        const modelsGrid = document.getElementById('models-grid');
+        const storeLoading = document.getElementById('store-loading');
+        
+        // Pedidos Admin
+        const adminOrdersList = document.getElementById('admin-orders-list'); 
+        const adminOrdersLoading = document.getElementById('admin-orders-loading');
+        
+        // Vista de Detalles
+        const detailsImg = document.getElementById('details-img');
+        const detailsName = document.getElementById('details-name');
+        const detailsDesc = document.getElementById('details-desc');
+        const detailsPriceSpinner = document.getElementById('details-price-spinner');
+        const detailsPriceText = document.getElementById('details-price-text');
+        const detailsPriceCurrency = document.getElementById('details-price-currency');
+        const detailsPriceError = document.getElementById('details-price-error');
+        const openPurchaseModalBtn = document.getElementById('open-purchase-modal-btn');
+
+        // Modal de Compra
+        const purchaseModal = document.getElementById('purchase-modal');
+        const cancelPurchaseBtn = document.getElementById('cancel-purchase-btn');
+        const confirmPurchaseBtn = document.getElementById('confirm-purchase-btn');
+        const modalImg = document.getElementById('modal-img');
+        const modalModelName = document.getElementById('modal-model-name');
+        const modalModelPrice = document.getElementById('modal-model-price');
+        const colorPicker = document.getElementById('color-picker');
+        const modalMessage = document.getElementById('modal-message');
+        const priceSummaryBase = document.getElementById('price-summary-base');
+        const priceSummaryFee = document.getElementById('price-summary-fee');
+        const priceSummaryTotal = document.getElementById('price-summary-total');
+
+        // Admin
+        const adminPanel = document.getElementById('admin-panel');
+        const addCoinsForm = document.getElementById('add-coins-form');
+        const adminMessage = document.getElementById('admin-message'); 
+
+        // --- Lógica de Autenticación (Protección de Ruta) ---
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuario está conectado
+                userId = user.uid;
+                currentUserEmail = user.email; 
+                authStatus.textContent = `Conectado como: ${user.email}`;
+                
+                appContainer.style.display = 'block'; // Mostrar app
+                
+                await setupUserListeners(userId);
+
+                // Comprobar si es admin
+                adminPanel.style.display = 'none'; 
+                navAdminOrders.style.display = 'none';
+                mobileNavAdminOrders.style.display = 'none';
+                if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
+                    adminPanel.style.display = 'block';
+                    navAdminOrders.style.display = 'inline-flex'; 
+                    mobileNavAdminOrders.style.display = 'flex'; 
+                }
+                
+            } else {
+                // Usuario está desconectado, redirigir a login
+                console.log("Usuario no logueado, redirigiendo a login.html");
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Manejar click de Cerrar Sesión
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                // onAuthStateChanged se activará y redirigirá a login.html
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+            }
+        });
+
+
+        // --- Lógica de Firestore (Listeners en tiempo real) ---
+
+        async function setupUserListeners(currentUserId) {
+            if (!currentUserId) return;
+
+            // 1. Listener para el perfil del usuario (monedas)
+            const userProfileRef = doc(db, `/artifacts/${appId}/users/${currentUserId}/profile/data`);
+            
+            onSnapshot(userProfileRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserCoins = data.coins || 0;
+                    userCoinsDisplay.textContent = currentUserCoins;
+                } else {
+                   console.error("Error: Perfil de usuario no encontrado.");
+                   // Esto no debería pasar si el login.html lo creó
+                }
+            }, (error) => {
+                console.error("Error en listener de perfil:", error);
+            });
+
+            // 2. Cargar modelos desde la API externa (Thingiverse)
+            if (currentModelsData.length === 0) {
+                 await fetchModelsFromAPI();
+            } else {
+                renderModels(currentModelsData);
+                storeLoading.style.display = 'none';
+            }
+
+            // 3. Listener para TODOS los pedidos (solo si es admin)
+            if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
+                const allOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
+                onSnapshot(query(allOrdersRef), (snapshot) => {
+                    renderAdminOrders(snapshot.docs);
+                    adminOrdersLoading.style.display = 'none';
+                }, (error) => {
+                    console.error("Error en listener de admin-pedidos:", error);
+                    adminOrdersList.innerHTML = '<p class="text-red-500">Error al cargar pedidos.</p>';
+                });
+            }
+        }
+
+        // --- Carga de Modelos desde API (Thingiverse) ---
+
+        async function fetchModelsFromAPI(searchTerm = '') {
+            storeLoading.style.display = 'flex';
+            modelsGrid.innerHTML = '';
+            
+            let apiEndpoint;
+
+            if (searchTerm) {
+                apiEndpoint = `https://api.thingiverse.com/search/${encodeURIComponent(searchTerm)}?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+            } else {
+                apiEndpoint = `https://api.thingiverse.com/popular?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+            }
+
+            const proxyApiUrl = `${codetabsProxy}${apiEndpoint}`;
+
+            const simulatedModels = [
+                { id: 'sim-model-1', name: 'Modelo Simulado (Fallo de API)', description: 'Pega tu token de Thingiverse en el código para cargar modelos reales.', default_image: { url: 'https://placehold.co/600x400/3498db/ffffff?text=Modelo+de+API' }, thumbnail: '', creator: {name: 'Simulador'} },
+                { id: 'sim-model-2', name: 'Otro Modelo Simulado', description: 'Este es un modelo de reserva.', default_image: { url: 'https://placehold.co/600x400/2ecc71/ffffff?text=Modelo+2+API' }, thumbnail: '', creator: {name: 'Simulador'} }
+            ];
+
+            if (!THINGIVERSE_ACCESS_TOKEN) {
+                console.warn("MODO DE SIMULACIÓN: No se encontró THINGIVERSE_ACCESS_TOKEN. Cargando modelos falsos.");
+                storeLoading.innerHTML = `<p class="text-orange-500 col-span-full text-center p-4 bg-orange-100 rounded-lg"><b>Modo de simulación.</b><br>Por favor, añade tu <b>Token de Acceso de Thingiverse</b> en el script para cargar modelos reales.</p>`;
+                await new Promise(resolve => setTimeout(resolve, 500)); 
+                currentModelsData = simulatedModels.map(adaptThingiverseModel); 
+                renderModels(currentModelsData);
+                return;
+            }
+
+            try {
+                const response = await fetch(proxyApiUrl);
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Token de API de Thingiverse inválido o caducado.');
+                    }
+                    throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+                }
+                
+                let thingiverseModels = await response.json(); 
+                
+                if (searchTerm && thingiverseModels.hits) {
+                    thingiverseModels = thingiverseModels.hits;
+                }
+                
+                const models = thingiverseModels.map(adaptThingiverseModel);
+
+                if (!searchTerm) {
+                    currentModelsData = models;
+                }
+                
+                renderModels(models); 
+                storeLoading.style.display = 'none';
+
+            } catch (error) {
+                console.error("Error al cargar modelos desde Thingiverse API:", error);
+                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar desde Thingiverse:</b><br>${error.message}<br><br>Cargando modelos de simulación...</p>`;
+                
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                currentModelsData = simulatedModels.map(adaptThingiverseModel);
+                renderModels(currentModelsData);
+            }
+        }
+
+        function adaptThingiverseModel(thing) {
+            const imageUrl = thing.default_image?.url || thing.thumbnail;
+            
+            return {
+                id: thing.id,
+                name: thing.name,
+                description: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
+                imageUrl: imageUrl 
+            };
+        }
+
+
+        // --- Funciones de Renderizado ---
+
+        function renderModels(models) {
+            modelsGrid.innerHTML = ''; 
+            if (models.length === 0) {
+                modelsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">No se encontraron modelos.</p>';
+                return;
+            }
+
+            models.forEach(model => {
+                const modelId = model.id;
+                const imageUrl = model.imageUrl || 'https://placehold.co/600x400/e2e8f0/64748b?text=Modelo+3D';
+                
+                const card = `
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl flex flex-col">
+                        <img src="${imageUrl}" alt="${model.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Imagen+no+disponible'">
+                        <div class="p-5 flex flex-col flex-grow">
+                            <h3 class="text-xl font-bold text-gray-900 truncate">${model.name}</h3>
+                            <p class="text-gray-600 text-sm mt-2 flex-grow">${model.description}</p>
+                            <div class="mt-4 flex justify-end items-center">
+                                <button 
+                                    class="details-btn inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                    data-id="${modelId}"
+                                    data-name="${model.name}"
+                                    data-desc="${model.description}"
+                                    data-img="${imageUrl}"
+                                >
+                                    Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                modelsGrid.innerHTML += card;
+            });
+
+            document.querySelectorAll('.details-btn').forEach(button => {
+                button.addEventListener('click', openDetailsView);
+            });
+        }
+
+        function renderAdminOrders(docs) {
+            adminOrdersList.innerHTML = '';
+            if (docs.length === 0) {
+                adminOrdersList.innerHTML = '<p class="text-gray-500 text-center">No hay pedidos de usuarios.</p>';
+                return;
+            }
+
+            const sortedDocs = docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
+
+            sortedDocs.forEach(doc => {
+                const order = doc.data();
+                const publicId = doc.id; // ID del doc público
+                
+                const item = `
+                    <div class="bg-white rounded-lg shadow-md p-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                        <!-- Info del Pedido -->
+                        <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                            <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${order.colorHex};" title="${order.colorName}"></div>
+                            <div>
+                                <p class="text-lg font-semibold">${order.modelName}</p>
+                                <p class="text-sm text-gray-700 font-medium">${order.userEmail}</p>
+                                <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
+                            </div>
+                        </div>
+                        <!-- Acciones del Admin -->
+                        <div class="flex items-center space-x-2 sm:space-x-4 self-end sm:self-center">
+                            <select class="status-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                data-public-id="${publicId}"
+                                data-private-id="${order.privateOrderId}"
+                                data-user-id="${order.userId}"
+                            >
+                                <option value="Pendiente" ${order.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
+                                <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
+                            </select>
+                            
+                            <!-- Botón de Descarga STL -->
+                            <button class="download-stl-btn p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center w-10 h-10"
+                                data-model-id="${order.modelId}"
+                                title="Descargar .STL">
+                                <!-- Icono de Descarga SVG -->
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                adminOrdersList.innerHTML += item;
+            });
+
+            // Añadir listeners a los <select>
+            adminOrdersList.querySelectorAll('.status-select').forEach(select => {
+                select.addEventListener('change', handleStatusChange);
+            });
+            
+            // Añadir listeners a los botones de descarga
+            adminOrdersList.querySelectorAll('.download-stl-btn').forEach(button => {
+                button.addEventListener('click', handleDownloadStl);
+            });
+        }
+
+        async function handleStatusChange(e) {
+            const newStatus = e.target.value;
+            const { publicId, privateId, userId } = e.target.dataset;
+            
+            if (!publicId || !privateId || !userId) {
+                console.error("Faltan IDs en el <select> de estado");
+                return;
+            }
+            
+            e.target.disabled = true; 
+            
+            try {
+                // 1. Actualizar el doc público
+                const publicDocRef = doc(db, `/artifacts/${appId}/public/data/all-orders/${publicId}`);
+                await updateDoc(publicDocRef, { status: newStatus });
+                
+                // 2. Actualizar el doc privado del usuario (para que él lo vea)
+                const privateDocRef = doc(db, `/artifacts/${appId}/users/${userId}/orders/${privateId}`);
+                await updateDoc(privateDocRef, { status: newStatus });
+                
+                console.log(`Estado del pedido ${publicId} actualizado a ${newStatus}`);
+            } catch (error) {
+                console.error("Error al actualizar el estado:", error);
+            } finally {
+                e.target.disabled = false; 
+            }
+        }
+
+        async function handleDownloadStl(e) {
+            const button = e.currentTarget;
+            const { modelId } = button.dataset;
+
+            button.disabled = true;
+            const originalIcon = button.innerHTML;
+            button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-white"></div>'; 
+
+            try {
+                const filesApiUrl = `${codetabsProxy}https://api.thingiverse.com/things/${modelId}/files?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+                const filesResponse = await fetch(filesApiUrl);
+                if (!filesResponse.ok) throw new Error('No se pudo obtener la lista de archivos.');
+                
+                const files = await filesResponse.json();
+                if (!files || files.length === 0) throw new Error('Este modelo no tiene archivos.');
+
+                let fileToDownload = files.find(f => f.name.toLowerCase().endsWith('.stl')) ||
+                                     files.find(f => f.name.toLowerCase().endsWith('.obj'));
+
+                if (!fileToDownload || !fileToDownload.download_url) throw new Error('No se encontró un archivo .stl o .obj descargable.');
+                
+                const downloadUrl = fileToDownload.download_url;
+                const fileName = fileToDownload.name;
+
+                const fileBlobResponse = await fetch(`${codetabsProxy}${downloadUrl}`);
+                if (!fileBlobResponse.ok) throw new Error('No se pudo descargar el archivo.');
+                
+                const blob = await fileBlobResponse.blob();
+
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = fileName; 
+                document.body.appendChild(link);
+                link.click();
+                
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+
+            } catch (error) {
+                console.error("Error al descargar STL:", error);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalIcon;
+            }
+        }
+
+
+        // --- Lógica de Navegación ---
+
+        function showView(viewId) {
+            // Ocultar todas las vistas
+            storeView.style.display = 'none';
+            detailsView.style.display = 'none';
+            adminOrdersView.style.display = 'none'; 
+            
+            // Quitar clase activa de nav de escritorio
+            navStore.classList.remove('border-blue-500', 'text-gray-900');
+            navStore.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+            navAdminOrders.classList.remove('border-blue-500', 'text-gray-900'); 
+            navAdminOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700'); 
+
+            // Quitar clase activa de nav móvil
+            mobileNavStore.classList.remove('active');
+            mobileNavAdminOrders.classList.remove('active');
+
+            // Mostrar la vista seleccionada
+            if (viewId === 'store') {
+                storeView.style.display = 'block';
+                navStore.classList.add('border-blue-500', 'text-gray-900');
+                navStore.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                mobileNavStore.classList.add('active');
+            } else if (viewId === 'details') {
+                detailsView.style.display = 'block';
+            } else if (viewId === 'admin-orders') { 
+                adminOrdersView.style.display = 'block';
+                navAdminOrders.classList.add('border-blue-500', 'text-gray-900');
+                navAdminOrders.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
+                mobileNavAdminOrders.classList.add('active');
+            }
+        }
+
+        // Listeners Navegación (para vistas internas de home.html)
+        navStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); }); 
+        mobileNavStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        mobileNavAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
+
+        // Listener para la barra de búsqueda
+        searchBar.addEventListener('search', (e) => {
+            fetchModelsFromAPI(e.target.value.trim());
+        });
+
+
+        // --- Lógica de la Vista de Detalles y Cálculo de Precio ---
+
+        async function openDetailsView(e) {
+            const { id, name, desc, img } = e.currentTarget.dataset;
+            
+            showView('details');
+            detailsImg.src = img;
+            detailsName.textContent = name;
+            detailsDesc.textContent = desc;
+
+            detailsPriceSpinner.style.display = 'block';
+            detailsPriceText.textContent = 'Calculando...';
+            detailsPriceCurrency.classList.add('hidden');
+            detailsPriceError.textContent = '';
+            openPurchaseModalBtn.disabled = true; 
+
+            openPurchaseModalBtn.dataset.id = id;
+            openPurchaseModalBtn.dataset.name = name;
+            openPurchaseModalBtn.dataset.img = img;
+
+            try {
+                const imageUrl = e.currentTarget.dataset.img; 
+                const prompt = `Based on the image of this 3D model, titled '${name}', estimate its printing cost in 'monedas' on a scale of 50 (simple) to 500 (very complex). Respond ONLY with the final number, without any other text.`;
+                const token = "25eMuLLjvFlPA9iw";
+                const apiUrl = `https://text.pollinations.ai/openai?token=${token}&seed=42`;
+
+                const payload = {
+                    "model":"openai-fast",
+                    "messages": [
+                        {
+                            "role": "user",
+                            "content": [
+                                { "type": "text", "text": prompt },
+                                { "type": "image_url", "image_url": { "url": imageUrl } }
+                            ]
+                        }
+                    ]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error("Error de la API de IA:", errorData);
+                    throw new Error(`Error de la API: ${errorData.details?.error?.message || response.statusText}`);
+                }
+
+                const data = await response.json();
+                const aiResponse = data.choices[0].message.content.trim();
+                let price = parseInt(aiResponse, 10);
+                
+                if (isNaN(price) || price <= 0) {
+                    console.warn(`Respuesta de IA inválida ('${aiResponse}'). Usando precio base.`);
+                    price = 50; 
+                    detailsPriceError.textContent = 'IA no dio un precio. Usando 50.';
+                }
+                
+                // Triplicar el precio
+                const basePrice = price * 3;
+
+                detailsPriceText.textContent = basePrice;
+                detailsPriceSpinner.style.display = 'none';
+                detailsPriceCurrency.classList.remove('hidden');
+                
+                openPurchaseModalBtn.dataset.price = basePrice;
+                openPurchaseModalBtn.disabled = false; 
+
+            } catch (error) {
+                console.error("Error al calcular el precio con IA:", error);
+                const basePrice = 50 * 3; // Precio base triplicado
+                detailsPriceText.textContent = basePrice; 
+                detailsPriceSpinner.style.display = 'none';
+                detailsPriceCurrency.classList.remove('hidden');
+                detailsPriceError.textContent = 'Error al calcular. Usando 150.';
+                
+                openPurchaseModalBtn.dataset.price = basePrice;
+                openPurchaseModalBtn.disabled = false; 
+            }
+        }
+
+
+        // --- Lógica del Modal de Compra ---
+
+        openPurchaseModalBtn.addEventListener('click', (e) => {
+            const { id, name, price, img } = e.currentTarget.dataset;
+            const basePrice = parseInt(price, 10); // Ya viene triplicado
+            
+            currentModelToPurchase = {
+                id: id,
+                name: name,
+                price: basePrice, // Este es el precio base (ya x3)
+                img: img
+            };
+
+            modalImg.src = img;
+            modalModelName.textContent = name;
+            modalModelPrice.textContent = basePrice; 
+            modalMessage.textContent = '';
+            colorPicker.value = 'Rojo'; 
+            confirmPurchaseBtn.disabled = false;
+            confirmPurchaseBtn.textContent = 'Confirmar Pedido';
+            
+            updatePriceSummary();
+            purchaseModal.classList.remove('hidden');
+        });
+
+        colorPicker.addEventListener('change', updatePriceSummary);
+
+        function updatePriceSummary() {
+            if (!currentModelToPurchase) return;
+
+            const basePrice = currentModelToPurchase.price; // El precio base ya está triplicado
+            const selectedOption = colorPicker.options[colorPicker.selectedIndex];
+            const colorFee = parseInt(selectedOption.dataset.fee, 10) || 0;
+            const totalPrice = basePrice + colorFee; // Sumar la tarifa al precio base triplicado
+
+            priceSummaryBase.textContent = `${basePrice} monedas`;
+            priceSummaryFee.textContent = `+ ${colorFee} monedas`;
+            priceSummaryTotal.textContent = `${totalPrice} monedas`;
+
+            currentModelToPurchase.totalPrice = totalPrice;
+            currentModelToPurchase.colorName = selectedOption.value;
+            currentModelToPurchase.colorHex = getHexForColorName(selectedOption.value); 
+        }
+
+        function getHexForColorName(colorName) {
+            const colors = {
+                'Rojo': '#ef4444', 'Naranja': '#f97316', 'Amarillo': '#eab308',
+                'Verde': '#22c55e', 'Azul claro': '#38bdf8', 'Azul oscuro': '#3b82f6',
+                'Morado': '#8b5cf6', 'Rosa': '#ec4899', 'Blanco': '#f8fafc',
+                'Negro': '#1e293b', 'Gris (blando)': '#94a3b8'
+            };
+            return colors[colorName] || '#9ca3af';
+        }
+
+        function closePurchaseModal() {
+            purchaseModal.classList.add('hidden');
+            currentModelToPurchase = null;
+        }
+
+        async function handlePurchase() {
+            if (!currentModelToPurchase || !userId) return;
+
+            const modelPrice = currentModelToPurchase.totalPrice; // Usar el precio total (base x3 + tarifa)
+            const selectedColorName = currentModelToPurchase.colorName;
+            const selectedColorHex = currentModelToPurchase.colorHex;
+
+            if (currentUserCoins < modelPrice) {
+                modalMessage.textContent = 'Error: No tienes suficientes monedas.';
+                modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
+                return;
+            }
+
+            confirmPurchaseBtn.disabled = true;
+            confirmPurchaseBtn.textContent = 'Procesando...';
+            modalMessage.textContent = 'Procesando tu pedido...';
+            modalMessage.className = 'mt-4 text-sm text-blue-600 font-medium';
+
+            try {
+                const newCoinBalance = currentUserCoins - modelPrice;
+                const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                await updateDoc(userProfileRef, {
+                    coins: newCoinBalance
+                });
+
+                // 3. Crear doc PRIVADO
+                const userOrdersRef = collection(db, `/artifacts/${appId}/users/${userId}/orders`);
+                const privateOrderDoc = await addDoc(userOrdersRef, {
+                    modelId: currentModelToPurchase.id,
+                    modelName: currentModelToPurchase.name,
+                    colorName: selectedColorName,
+                    colorHex: selectedColorHex,
+                    pricePaid: modelPrice,
+                    status: 'Pendiente', 
+                    createdAt: serverTimestamp()
+                });
+
+                // 4. Crear doc PÚBLICO (para admin)
+                const publicOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
+                await addDoc(publicOrdersRef, {
+                    privateOrderId: privateOrderDoc.id, 
+                    userId: userId,
+                    userEmail: auth.currentUser.email,
+                    modelId: currentModelToPurchase.id, 
+                    modelName: currentModelToPurchase.name,
+                    colorName: selectedColorName, 
+                    colorHex: selectedColorHex,   
+                    pricePaid: modelPrice,
+                    status: 'Pendiente', 
+                    createdAt: serverTimestamp()
+                });
+
+                // 5. Éxito
+                modalMessage.textContent = '¡Pedido realizado con éxito! Será enviado a impresión.';
+                modalMessage.className = 'mt-4 text-sm text-green-600 font-medium';
+
+                setTimeout(() => {
+                    closePurchaseModal();
+                    showView('store');
+                }, 2000);
+
+            } catch (error) {
+                console.error("Error al procesar la compra:", error);
+                modalMessage.textContent = 'Error al procesar el pedido. Inténtalo de nuevo.';
+                modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
+                confirmPurchaseBtn.disabled = false;
+                confirmPurchaseBtn.textContent = 'Confirmar Pedido';
+            }
+        }
+
+        cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
+        confirmPurchaseBtn.addEventListener('click', handlePurchase);
+
+        // --- Lógica del Panel de Administración ---
+
+        addCoinsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            adminMessage.textContent = ''; 
+            
+            const amount = parseInt(document.getElementById('coins-amount').value);
+            const targetEmail = document.getElementById('target-user-email').value.trim();
+
+            if (!amount) {
+                adminMessage.textContent = "Cantidad inválida.";
+                adminMessage.className = 'text-sm text-red-600';
+                return;
+            }
+            
+            let targetUserId = userId; 
+            let targetProfileRef;
+
+            try {
+                if (targetEmail) {
+                    // Buscar al usuario por email en la colección pública
+                    const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
+                    const lookupSnap = await getDoc(lookupRef);
+                    
+                    if (!lookupSnap.exists()) {
+                        adminMessage.textContent = "Error: Email de usuario no encontrado.";
+                        adminMessage.className = 'text-sm text-red-600';
+                        return;
+                    }
+                    targetUserId = lookupSnap.data().userId;
+                    targetProfileRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/profile/data`);
+                } else {
+                    // Modificar la cuenta del propio admin
+                    targetProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
+                }
+
+                const targetProfileSnap = await getDoc(targetProfileRef);
+                if (!targetProfileSnap.exists()) {
+                     adminMessage.textContent = "Error: Perfil de usuario no encontrado.";
+                     adminMessage.className = 'text-sm text-red-600';
+                    return;
+                }
+
+                const currentCoins = targetProfileSnap.data().coins || 0;
+                const newTotal = currentCoins + amount;
+
+                await updateDoc(targetProfileRef, {
+                    coins: newTotal
+                });
+
+                adminMessage.textContent = `Éxito: ${amount} monedas ${amount > 0 ? 'añadidas' : 'quitadas'} a ${targetEmail || 'tu cuenta'}. Nuevo total: ${newTotal}`;
+                adminMessage.className = 'text-sm text-green-600';
+                addCoinsForm.reset();
+
+            } catch (error) {
+                console.error("Error al modificar monedas:", error);
+                adminMessage.textContent = `Error al modificar monedas: ${error.message}`;
+                adminMessage.className = 'text-sm text-red-600';
+            }
+        });
+
+    </script>
+</body>
+</html>
