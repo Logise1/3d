@@ -90,7 +90,7 @@
 
             <!-- Vista de Detalles del Producto (Oculta por defecto) -->
             <div id="details-view" class="hidden">
-                <a href="home.html" id="back-to-store-btn" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <a href="#" id="back-to-store-btn" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
                     &larr; Volver a la tienda
                 </a>
 
@@ -312,14 +312,21 @@
 
         // --- Configuración de Firebase ---
         const firebaseConfig = {
-          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
-          authDomain: "dprinting-9b264.firebaseapp.com",
-          projectId: "dprinting-9b264",
-          storageBucket: "dprinting-9b264.firebasestorage.app",
-          messagingSenderId: "647333546063",
-          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
-          measurementId: "G-FWKS2HB1SE"
+            apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+            authDomain: "dprinting-9b264.firebaseapp.com",
+            projectId: "dprinting-9b264",
+            storageBucket: "dprinting-9b264.firebasestorage.app",
+            messagingSenderId: "647333546063",
+            appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+            measurementId: "G-FWKS2HB1SE"
         };
+        
+        // ==================================================================
+        // ¡CONFIGURACIÓN DEL BACKEND!
+        // Pega aquí la URL de tu Cloudflare Worker desplegado.
+        // ==================================================================
+        const workerUrl = 'https://3d.logise1123.workers.dev'; // <-- ¡URL ACTUALIZADA!
+        // ==================================================================
         
         const appId = firebaseConfig.projectId || 'default-app-id';
 
@@ -330,64 +337,61 @@
             db = getFirestore(app);
             auth = getAuth(app);
             setLogLevel('Debug');
-            console.log("Firebase inicializado correctamente.");
+            console.log("Firebase inicializado en home.html");
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
             document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
         }
 
-        // --- Variables Globales del Script ---
-        const THINGIVERSE_ACCESS_TOKEN = '061cbc2ed2f6c164cd4172c14ba0fe7d'; 
-        const codetabsProxy = 'https://api.codetabs.com/v1/proxy?quest=';
-        
         // --- Variables de Estado de la App ---
         let userId = null;
-        let currentUserEmail = null; 
+        let userEmail = null;
+        let isAdmin = false;
         let currentUserCoins = 0;
         let currentModelToPurchase = null;
-        let currentModelsData = []; 
+        let currentCalculatedPrice = 0;
         
         // --- Elementos del DOM ---
         const authStatus = document.getElementById('auth-status');
         const userCoinsDisplay = document.getElementById('user-coins');
+        
+        // Contenedores
         const appContainer = document.getElementById('app-container');
+
+        // Botones Auth
         const logoutBtn = document.getElementById('logout-btn');
 
-        // Navegación (Escritorio)
+        // Navegación
         const navStore = document.getElementById('nav-store');
         const navOrders = document.getElementById('nav-orders');
-        const navAdminOrders = document.getElementById('nav-admin-orders'); 
-        
-        // Navegación (Móvil)
-        const mobileNavStore = document.getElementById('mobile-nav-store');
+        const navAdminOrders = document.getElementById('nav-admin-orders');
         const mobileNavOrders = document.getElementById('mobile-nav-orders');
+        const mobileNavStore = document.getElementById('mobile-nav-store');
         const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
-        
+
         // Vistas
         const storeView = document.getElementById('store-view');
         const detailsView = document.getElementById('details-view');
-        const adminOrdersView = document.getElementById('admin-orders-view'); 
+        const adminOrdersView = document.getElementById('admin-orders-view');
         
         // Tienda
-        const searchBar = document.getElementById('search-bar');
         const modelsGrid = document.getElementById('models-grid');
         const storeLoading = document.getElementById('store-loading');
+        const searchBar = document.getElementById('search-bar');
         
-        // Pedidos Admin
-        const adminOrdersList = document.getElementById('admin-orders-list'); 
-        const adminOrdersLoading = document.getElementById('admin-orders-loading');
-        
-        // Vista de Detalles
+        // Detalles
+        const backToStoreBtn = document.getElementById('back-to-store-btn');
         const detailsImg = document.getElementById('details-img');
         const detailsName = document.getElementById('details-name');
         const detailsDesc = document.getElementById('details-desc');
+        const detailsPriceContainer = document.getElementById('details-price-container');
         const detailsPriceSpinner = document.getElementById('details-price-spinner');
         const detailsPriceText = document.getElementById('details-price-text');
         const detailsPriceCurrency = document.getElementById('details-price-currency');
         const detailsPriceError = document.getElementById('details-price-error');
         const openPurchaseModalBtn = document.getElementById('open-purchase-modal-btn');
 
-        // Modal de Compra
+        // Modal
         const purchaseModal = document.getElementById('purchase-modal');
         const cancelPurchaseBtn = document.getElementById('cancel-purchase-btn');
         const confirmPurchaseBtn = document.getElementById('confirm-purchase-btn');
@@ -403,34 +407,36 @@
         // Admin
         const adminPanel = document.getElementById('admin-panel');
         const addCoinsForm = document.getElementById('add-coins-form');
-        const adminMessage = document.getElementById('admin-message'); 
+        const adminMessage = document.getElementById('admin-message');
+        const adminOrdersLoading = document.getElementById('admin-orders-loading');
+        const adminOrdersList = document.getElementById('admin-orders-list');
 
-        // --- Lógica de Autenticación (Protección de Ruta) ---
+        // --- Lógica de Autenticación ---
 
+        // Listener del estado de autenticación
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 // Usuario está conectado
                 userId = user.uid;
-                currentUserEmail = user.email; 
+                userEmail = user.email;
                 authStatus.textContent = `Conectado como: ${user.email}`;
                 
-                appContainer.style.display = 'block'; // Mostrar app
-                
-                await setupUserListeners(userId);
-
-                // Comprobar si es admin
-                adminPanel.style.display = 'none'; 
-                navAdminOrders.style.display = 'none';
-                mobileNavAdminOrders.style.display = 'none';
-                if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
-                    adminPanel.style.display = 'block';
-                    navAdminOrders.style.display = 'inline-flex'; 
-                    mobileNavAdminOrders.style.display = 'flex'; 
+                // Comprobar si es Admin
+                if (user.email === 'arielcapdevilagarcia@gmail.com') {
+                    isAdmin = true;
+                    adminPanel.classList.remove('hidden');
+                    navAdminOrders.classList.remove('hidden');
+                    mobileNavAdminOrders.classList.remove('hidden');
                 }
                 
+                // Mostrar app
+                appContainer.style.display = 'block';
+                
+                // Configurar listeners de datos para este usuario
+                await setupUserListeners(userId);
+                
             } else {
-                // Usuario está desconectado, redirigir a login
-                console.log("Usuario no logueado, redirigiendo a login.html");
+                // Usuario está desconectado -> Redirigir a login
                 window.location.href = 'login.html';
             }
         });
@@ -439,7 +445,7 @@
         logoutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
-                // onAuthStateChanged se activará y redirigirá a login.html
+                // onAuthStateChanged se encargará de la redirección
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
             }
@@ -460,133 +466,113 @@
                     currentUserCoins = data.coins || 0;
                     userCoinsDisplay.textContent = currentUserCoins;
                 } else {
-                   console.error("Error: Perfil de usuario no encontrado.");
-                   // Esto no debería pasar si el login.html lo creó
+                    console.warn("Perfil de usuario no encontrado, esto no debería pasar si el registro fue correcto.");
+                    userCoinsDisplay.textContent = '0';
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
             });
 
-            // 2. Cargar modelos desde la API externa (Thingiverse)
-            if (currentModelsData.length === 0) {
-                 await fetchModelsFromAPI();
-            } else {
-                renderModels(currentModelsData);
-                storeLoading.style.display = 'none';
-            }
+            // 2. Cargar modelos desde la API (Worker)
+            await fetchModelsFromAPI();
 
-            // 3. Listener para TODOS los pedidos (solo si es admin)
-            if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
-                const allOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
+            // 3. Si es Admin, cargar TODOS los pedidos
+            if (isAdmin) {
+                const allOrdersRef = collection(db, `/artifacts/${appId}/public/allOrders`);
                 onSnapshot(query(allOrdersRef), (snapshot) => {
                     renderAdminOrders(snapshot.docs);
                     adminOrdersLoading.style.display = 'none';
                 }, (error) => {
                     console.error("Error en listener de admin-pedidos:", error);
-                    adminOrdersList.innerHTML = '<p class="text-red-500">Error al cargar pedidos.</p>';
+                    adminOrdersLoading.innerHTML = '<p class="text-red-500">Error al cargar pedidos.</p>';
                 });
             }
         }
 
-        // --- Carga de Modelos desde API (Thingiverse) ---
+        // --- Carga de Modelos desde API (Worker) ---
 
         async function fetchModelsFromAPI(searchTerm = '') {
             storeLoading.style.display = 'flex';
             modelsGrid.innerHTML = '';
             
-            let apiEndpoint;
+            // TODO: El worker '3d.logise1123.workers.dev' solo soporta /popular
+            // Si el worker se actualiza para soportar búsqueda:
+            // let apiEndpoint = `${workerUrl}/popular`;
+            // if (searchTerm) {
+            //     apiEndpoint = `${workerUrl}/search?query=${encodeURIComponent(searchTerm)}`;
+            // }
 
+            // Por ahora, solo usamos /popular
+            let apiEndpoint = `${workerUrl}/popular`;
             if (searchTerm) {
-                apiEndpoint = `https://api.thingiverse.com/search/${encodeURIComponent(searchTerm)}?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
-            } else {
-                apiEndpoint = `https://api.thingiverse.com/popular?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
+                console.warn("La búsqueda aún no está implementada en este ejemplo de worker, mostrando populares.");
             }
-
-            const proxyApiUrl = `${codetabsProxy}${apiEndpoint}`;
-
-            const simulatedModels = [
-                { id: 'sim-model-1', name: 'Modelo Simulado (Fallo de API)', description: 'Pega tu token de Thingiverse en el código para cargar modelos reales.', default_image: { url: 'https://placehold.co/600x400/3498db/ffffff?text=Modelo+de+API' }, thumbnail: '', creator: {name: 'Simulador'} },
-                { id: 'sim-model-2', name: 'Otro Modelo Simulado', description: 'Este es un modelo de reserva.', default_image: { url: 'https://placehold.co/600x400/2ecc71/ffffff?text=Modelo+2+API' }, thumbnail: '', creator: {name: 'Simulador'} }
-            ];
-
-            if (!THINGIVERSE_ACCESS_TOKEN) {
-                console.warn("MODO DE SIMULACIÓN: No se encontró THINGIVERSE_ACCESS_TOKEN. Cargando modelos falsos.");
-                storeLoading.innerHTML = `<p class="text-orange-500 col-span-full text-center p-4 bg-orange-100 rounded-lg"><b>Modo de simulación.</b><br>Por favor, añade tu <b>Token de Acceso de Thingiverse</b> en el script para cargar modelos reales.</p>`;
-                await new Promise(resolve => setTimeout(resolve, 500)); 
-                currentModelsData = simulatedModels.map(adaptThingiverseModel); 
-                renderModels(currentModelsData);
-                return;
-            }
-
+            
             try {
-                const response = await fetch(proxyApiUrl);
+                // Usamos nuestro worker, ya no necesitamos el proxy ni el token
+                const response = await fetch(apiEndpoint);
+                
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        throw new Error('Token de API de Thingiverse inválido o caducado.');
+                    const errorText = await response.text();
+                    // Detectar el error "You can on"
+                    if (errorText.includes("You can on")) {
+                         throw new Error(`Error de la API: ${errorText} (JSON no válido)`);
                     }
                     throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
                 }
                 
-                let thingiverseModels = await response.json(); 
+                const thingiverseModels = await response.json().catch(e => {
+                    console.error("Error al parsear JSON de la API:", e);
+                    throw new Error("La respuesta de la API no es un JSON válido.");
+                }); 
                 
-                if (searchTerm && thingiverseModels.hits) {
-                    thingiverseModels = thingiverseModels.hits;
-                }
-                
-                const models = thingiverseModels.map(adaptThingiverseModel);
+                // Adaptar los datos de Thingiverse
+                const models = thingiverseModels.map(thing => {
+                    // Usar la imagen de mayor calidad si existe, si no, la miniatura
+                    const imageUrl = thing.default_image?.url || thing.thumbnail;
+                    
+                    return {
+                        id: thing.id,
+                        name: thing.name,
+                        description: `Autor: ${thing.creator.name} (vía Thingiverse)`,
+                        imageUrl: imageUrl
+                        // El precio se calcula al hacer clic en "Detalles"
+                    };
+                });
 
-                if (!searchTerm) {
-                    currentModelsData = models;
-                }
-                
                 renderModels(models); 
-                storeLoading.style.display = 'none';
+                storeLoading.style.display = 'none'; // Ocultar spinner
 
             } catch (error) {
-                console.error("Error al cargar modelos desde Thingiverse API:", error);
-                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar desde Thingiverse:</b><br>${error.message}<br><br>Cargando modelos de simulación...</p>`;
-                
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                currentModelsData = simulatedModels.map(adaptThingiverseModel);
-                renderModels(currentModelsData);
+                console.error("Error al cargar modelos desde el Worker:", error);
+                storeLoading.innerHTML = `<p class="text-red-500 col-span-full text-center p-4 bg-red-100 rounded-lg"><b>Error al cargar desde Thingiverse:</b><br>${error.message}<br><br>Inténtalo de nuevo más tarde.</p>`;
             }
-        }
-
-        function adaptThingiverseModel(thing) {
-            const imageUrl = thing.default_image?.url || thing.thumbnail;
-            
-            return {
-                id: thing.id,
-                name: thing.name,
-                description: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
-                imageUrl: imageUrl 
-            };
         }
 
 
         // --- Funciones de Renderizado ---
 
         function renderModels(models) {
-            modelsGrid.innerHTML = ''; 
+            modelsGrid.innerHTML = ''; // Limpiar parrilla
             if (models.length === 0) {
                 modelsGrid.innerHTML = '<p class="text-gray-500 col-span-full text-center">No se encontraron modelos.</p>';
                 return;
             }
 
             models.forEach(model => {
-                const modelId = model.id;
                 const imageUrl = model.imageUrl || 'https://placehold.co/600x400/e2e8f0/64748b?text=Modelo+3D';
                 
                 const card = `
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden transition-all hover:shadow-2xl flex flex-col">
-                        <img src="${imageUrl}" alt="${model.name}" class="w-full h-56 object-cover" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Imagen+no+disponible'">
+                        <img src="${imageUrl}" alt="${model.name}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x400/e2e8f0/64748b?text=Imagen+no+disponible'">
                         <div class="p-5 flex flex-col flex-grow">
-                            <h3 class="text-xl font-bold text-gray-900 truncate">${model.name}</h3>
+                            <h3 class="text-xl font-bold text-gray-900">${model.name}</h3>
                             <p class="text-gray-600 text-sm mt-2 flex-grow">${model.description}</p>
                             <div class="mt-4 flex justify-end items-center">
+                                <!-- Botón de Detalles (reemplaza al de Comprar) -->
                                 <button 
                                     class="details-btn inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                    data-id="${modelId}"
+                                    data-id="${model.id}"
                                     data-name="${model.name}"
                                     data-desc="${model.description}"
                                     data-img="${imageUrl}"
@@ -600,393 +586,256 @@
                 modelsGrid.innerHTML += card;
             });
 
+            // Añadir event listeners a los botones de "Detalles"
             document.querySelectorAll('.details-btn').forEach(button => {
                 button.addEventListener('click', openDetailsView);
             });
         }
 
-        function renderAdminOrders(docs) {
-            adminOrdersList.innerHTML = '';
-            if (docs.length === 0) {
-                adminOrdersList.innerHTML = '<p class="text-gray-500 text-center">No hay pedidos de usuarios.</p>';
-                return;
-            }
-
-            const sortedDocs = docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
-
-            sortedDocs.forEach(doc => {
-                const order = doc.data();
-                const publicId = doc.id; // ID del doc público
-                
-                const item = `
-                    <div class="bg-white rounded-lg shadow-md p-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                        <!-- Info del Pedido -->
-                        <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                            <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${order.colorHex};" title="${order.colorName}"></div>
-                            <div>
-                                <p class="text-lg font-semibold">${order.modelName}</p>
-                                <p class="text-sm text-gray-700 font-medium">${order.userEmail}</p>
-                                <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
-                            </div>
-                        </div>
-                        <!-- Acciones del Admin -->
-                        <div class="flex items-center space-x-2 sm:space-x-4 self-end sm:self-center">
-                            <select class="status-select rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                                data-public-id="${publicId}"
-                                data-private-id="${order.privateOrderId}"
-                                data-user-id="${order.userId}"
-                            >
-                                <option value="Pendiente" ${order.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                                <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
-                                <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
-                            </select>
-                            
-                            <!-- Botón de Descarga STL -->
-                            <button class="download-stl-btn p-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center w-10 h-10"
-                                data-model-id="${order.modelId}"
-                                title="Descargar .STL">
-                                <!-- Icono de Descarga SVG -->
-                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            </button>
-                        </div>
-                    </div>
-                `;
-                adminOrdersList.innerHTML += item;
-            });
-
-            // Añadir listeners a los <select>
-            adminOrdersList.querySelectorAll('.status-select').forEach(select => {
-                select.addEventListener('change', handleStatusChange);
-            });
-            
-            // Añadir listeners a los botones de descarga
-            adminOrdersList.querySelectorAll('.download-stl-btn').forEach(button => {
-                button.addEventListener('click', handleDownloadStl);
-            });
-        }
-
-        async function handleStatusChange(e) {
-            const newStatus = e.target.value;
-            const { publicId, privateId, userId } = e.target.dataset;
-            
-            if (!publicId || !privateId || !userId) {
-                console.error("Faltan IDs en el <select> de estado");
-                return;
-            }
-            
-            e.target.disabled = true; 
-            
-            try {
-                // 1. Actualizar el doc público
-                const publicDocRef = doc(db, `/artifacts/${appId}/public/data/all-orders/${publicId}`);
-                await updateDoc(publicDocRef, { status: newStatus });
-                
-                // 2. Actualizar el doc privado del usuario (para que él lo vea)
-                const privateDocRef = doc(db, `/artifacts/${appId}/users/${userId}/orders/${privateId}`);
-                await updateDoc(privateDocRef, { status: newStatus });
-                
-                console.log(`Estado del pedido ${publicId} actualizado a ${newStatus}`);
-            } catch (error) {
-                console.error("Error al actualizar el estado:", error);
-            } finally {
-                e.target.disabled = false; 
-            }
-        }
-
-        async function handleDownloadStl(e) {
-            const button = e.currentTarget;
-            const { modelId } = button.dataset;
-
-            button.disabled = true;
-            const originalIcon = button.innerHTML;
-            button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-white"></div>'; 
-
-            try {
-                const filesApiUrl = `${codetabsProxy}https://api.thingiverse.com/things/${modelId}/files?access_token=${THINGIVERSE_ACCESS_TOKEN}`;
-                const filesResponse = await fetch(filesApiUrl);
-                if (!filesResponse.ok) throw new Error('No se pudo obtener la lista de archivos.');
-                
-                const files = await filesResponse.json();
-                if (!files || files.length === 0) throw new Error('Este modelo no tiene archivos.');
-
-                let fileToDownload = files.find(f => f.name.toLowerCase().endsWith('.stl')) ||
-                                     files.find(f => f.name.toLowerCase().endsWith('.obj'));
-
-                if (!fileToDownload || !fileToDownload.download_url) throw new Error('No se encontró un archivo .stl o .obj descargable.');
-                
-                const downloadUrl = fileToDownload.download_url;
-                const fileName = fileToDownload.name;
-
-                const fileBlobResponse = await fetch(`${codetabsProxy}${downloadUrl}`);
-                if (!fileBlobResponse.ok) throw new Error('No se pudo descargar el archivo.');
-                
-                const blob = await fileBlobResponse.blob();
-
-                const blobUrl = URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = blobUrl;
-                link.download = fileName; 
-                document.body.appendChild(link);
-                link.click();
-                
-                document.body.removeChild(link);
-                URL.revokeObjectURL(blobUrl);
-
-            } catch (error) {
-                console.error("Error al descargar STL:", error);
-            } finally {
-                button.disabled = false;
-                button.innerHTML = originalIcon;
-            }
-        }
-
-
-        // --- Lógica de Navegación ---
+        // --- Lógica de Navegación de Vistas ---
 
         function showView(viewId) {
             // Ocultar todas las vistas
             storeView.style.display = 'none';
             detailsView.style.display = 'none';
-            adminOrdersView.style.display = 'none'; 
+            adminOrdersView.style.display = 'none';
             
-            // Quitar clase activa de nav de escritorio
+            // Quitar clase activa de todos los enlaces nav
             navStore.classList.remove('border-blue-500', 'text-gray-900');
-            navStore.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
-            navAdminOrders.classList.remove('border-blue-500', 'text-gray-900'); 
-            navAdminOrders.classList.add('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700'); 
-
-            // Quitar clase activa de nav móvil
+            navStore.classList.add('border-transparent', 'text-gray-500');
+            navAdminOrders.classList.remove('border-blue-500', 'text-gray-900');
+            navAdminOrders.classList.add('border-transparent', 'text-gray-500');
             mobileNavStore.classList.remove('active');
             mobileNavAdminOrders.classList.remove('active');
+
 
             // Mostrar la vista seleccionada
             if (viewId === 'store') {
                 storeView.style.display = 'block';
                 navStore.classList.add('border-blue-500', 'text-gray-900');
-                navStore.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
                 mobileNavStore.classList.add('active');
             } else if (viewId === 'details') {
                 detailsView.style.display = 'block';
-            } else if (viewId === 'admin-orders') { 
+            } else if (viewId === 'admin-orders') {
                 adminOrdersView.style.display = 'block';
                 navAdminOrders.classList.add('border-blue-500', 'text-gray-900');
-                navAdminOrders.classList.remove('border-transparent', 'text-gray-500', 'hover:border-gray-300', 'hover:text-gray-700');
                 mobileNavAdminOrders.classList.add('active');
             }
         }
 
-        // Listeners Navegación (para vistas internas de home.html)
-        navStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
-        navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); }); 
-        mobileNavStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        // Navegación (Admin)
+        navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
         mobileNavAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
+        
+        // Volver a la tienda desde Detalles
+        backToStoreBtn.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
 
-        // Listener para la barra de búsqueda
-        searchBar.addEventListener('search', (e) => {
-            fetchModelsFromAPI(e.target.value.trim());
-        });
-
-
-        // --- Lógica de la Vista de Detalles y Cálculo de Precio ---
+        // --- Lógica de la Vista de Detalles ---
 
         async function openDetailsView(e) {
-            const { id, name, desc, img } = e.currentTarget.dataset;
+            const { id, name, img, desc } = e.target.dataset;
             
+            currentModelToPurchase = { id, name, img, desc }; // Guardar datos
+            
+            // 1. Mostrar vista de detalles y resetear estado
             showView('details');
+            window.scrollTo(0, 0); // Subir al inicio
+
+            // Resetear UI de Detalles
             detailsImg.src = img;
             detailsName.textContent = name;
             detailsDesc.textContent = desc;
-
             detailsPriceSpinner.style.display = 'block';
             detailsPriceText.textContent = 'Calculando...';
             detailsPriceCurrency.classList.add('hidden');
             detailsPriceError.textContent = '';
-            openPurchaseModalBtn.disabled = true; 
+            openPurchaseModalBtn.disabled = true;
 
-            openPurchaseModalBtn.dataset.id = id;
-            openPurchaseModalBtn.dataset.name = name;
-            openPurchaseModalBtn.dataset.img = img;
+            // --- Cálculo de Precio (Llamada 2: IA de Pollinations) ---
+            const token = '25eMuLLjvFlPA9iw'; // Tu token de API
+            const seed = 42;
+            const aiApiUrl = `https://text.pollinations.ai/openai?token=${token}&seed=${seed}`;
+
+            // Prompt para la IA (incluyendo el nombre)
+            const prompt = `Actúa como un tasador experto en impresión 3D. 
+            Quiero que estimes un precio base de impresión para el modelo llamado "${name}".
+            Basándote en la imagen, estima un precio justo en "monedas" (un número entre 50 y 500) según su aparente complejidad y tamaño. 
+            Responde ÚNICAMENTE con el número del precio. 
+            NO añadas texto, solo el número. Ejemplo: 120`;
+
+            // Payload para la API de OpenAI
+            const payload = {
+                "model": "gpt-4-vision-preview",
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": prompt
+                    },
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "text",
+                                "text": "Estima el precio para esta imagen:"
+                            },
+                            {
+                                "type": "image_url",
+                                "image_url": { "url": img } // Formato de objeto corregido
+                            }
+                        ]
+                    }
+                ],
+                "max_tokens": 10
+            };
 
             try {
-                const imageUrl = e.currentTarget.dataset.img; 
-                const prompt = `Based on the image of this 3D model, titled '${name}', estimate its printing cost in 'monedas' on a scale of 50 (simple) to 500 (very complex). Respond ONLY with the final number, without any other text.`;
-                const token = "25eMuLLjvFlPA9iw";
-                const apiUrl = `https://text.pollinations.ai/openai?token=${token}&seed=42`;
-
-                const payload = {
-                    "model":"openai-fast",
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": [
-                                { "type": "text", "text": prompt },
-                                { "type": "image_url", "image_url": { "url": imageUrl } }
-                            ]
-                        }
-                    ]
-                };
-
-                const response = await fetch(apiUrl, {
+                // Hacemos la llamada POST directa (sin proxy)
+                const response = await fetch(aiApiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
                     body: JSON.stringify(payload)
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error("Error de la API de IA:", errorData);
-                    throw new Error(`Error de la API: ${errorData.details?.error?.message || response.statusText}`);
+                    const errorBody = await response.json();
+                    console.error("Error API (Pollinations):", errorBody);
+                    throw new Error(errorBody.details?.error?.message || `Error HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
-                const aiResponse = data.choices[0].message.content.trim();
-                let price = parseInt(aiResponse, 10);
                 
-                if (isNaN(price) || price <= 0) {
-                    console.warn(`Respuesta de IA inválida ('${aiResponse}'). Usando precio base.`);
-                    price = 50; 
-                    detailsPriceError.textContent = 'IA no dio un precio. Usando 50.';
-                }
+                // Extraer la respuesta de la IA
+                let priceText = data.choices?.[0]?.message?.content || '50';
+                priceText = priceText.replace(/\D/g, ''); // Limpiar y quedarse solo con números
                 
-                // Triplicar el precio
-                const basePrice = price * 3;
+                let basePrice = parseInt(priceText, 10);
 
-                detailsPriceText.textContent = basePrice;
-                detailsPriceSpinner.style.display = 'none';
-                detailsPriceCurrency.classList.remove('hidden');
-                
-                openPurchaseModalBtn.dataset.price = basePrice;
-                openPurchaseModalBtn.disabled = false; 
+                if (isNaN(basePrice) || basePrice < 50) {
+                    basePrice = 50; // Precio mínimo si la IA falla
+                    detailsPriceError.textContent = 'La IA falló, usando precio base.';
+                }
+
+                // --- PRECIO TRIPLICADO ---
+                currentCalculatedPrice = basePrice * 3; 
+
+                // Actualizar UI de Detalles
+                detailsPriceText.textContent = currentCalculatedPrice;
 
             } catch (error) {
                 console.error("Error al calcular el precio con IA:", error);
-                const basePrice = 50 * 3; // Precio base triplicado
-                detailsPriceText.textContent = basePrice; 
+                
+                // --- PRECIO TRIPLICADO (Fallback) ---
+                currentCalculatedPrice = 50 * 3; // 50 (base) * 3
+                
+                detailsPriceText.textContent = currentCalculatedPrice;
+                detailsPriceError.textContent = 'Error de IA. Usando precio base.';
+            
+            } finally {
+                // UI final (tanto si falla como si no)
                 detailsPriceSpinner.style.display = 'none';
                 detailsPriceCurrency.classList.remove('hidden');
-                detailsPriceError.textContent = 'Error al calcular. Usando 150.';
-                
-                openPurchaseModalBtn.dataset.price = basePrice;
-                openPurchaseModalBtn.disabled = false; 
+                openPurchaseModalBtn.disabled = false;
             }
         }
 
-
         // --- Lógica del Modal de Compra ---
 
-        openPurchaseModalBtn.addEventListener('click', (e) => {
-            const { id, name, price, img } = e.currentTarget.dataset;
-            const basePrice = parseInt(price, 10); // Ya viene triplicado
-            
-            currentModelToPurchase = {
-                id: id,
-                name: name,
-                price: basePrice, // Este es el precio base (ya x3)
-                img: img
-            };
-
-            modalImg.src = img;
-            modalModelName.textContent = name;
-            modalModelPrice.textContent = basePrice; 
-            modalMessage.textContent = '';
-            colorPicker.value = 'Rojo'; 
-            confirmPurchaseBtn.disabled = false;
-            confirmPurchaseBtn.textContent = 'Confirmar Pedido';
-            
-            updatePriceSummary();
-            purchaseModal.classList.remove('hidden');
-        });
-
-        colorPicker.addEventListener('change', updatePriceSummary);
-
         function updatePriceSummary() {
-            if (!currentModelToPurchase) return;
-
-            const basePrice = currentModelToPurchase.price; // El precio base ya está triplicado
+            const basePrice = currentCalculatedPrice;
             const selectedOption = colorPicker.options[colorPicker.selectedIndex];
-            const colorFee = parseInt(selectedOption.dataset.fee, 10) || 0;
-            const totalPrice = basePrice + colorFee; // Sumar la tarifa al precio base triplicado
+            const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
+            const totalPrice = basePrice + colorFee;
 
             priceSummaryBase.textContent = `${basePrice} monedas`;
             priceSummaryFee.textContent = `+ ${colorFee} monedas`;
             priceSummaryTotal.textContent = `${totalPrice} monedas`;
 
-            currentModelToPurchase.totalPrice = totalPrice;
-            currentModelToPurchase.colorName = selectedOption.value;
-            currentModelToPurchase.colorHex = getHexForColorName(selectedOption.value); 
+            return { basePrice, colorFee, totalPrice };
         }
 
-        function getHexForColorName(colorName) {
-            const colors = {
-                'Rojo': '#ef4444', 'Naranja': '#f97316', 'Amarillo': '#eab308',
-                'Verde': '#22c55e', 'Azul claro': '#38bdf8', 'Azul oscuro': '#3b82f6',
-                'Morado': '#8b5cf6', 'Rosa': '#ec4899', 'Blanco': '#f8fafc',
-                'Negro': '#1e293b', 'Gris (blando)': '#94a3b8'
-            };
-            return colors[colorName] || '#9ca3af';
-        }
+        // Evento al cambiar el color
+        colorPicker.addEventListener('change', updatePriceSummary);
+
+        // Abrir Modal
+        openPurchaseModalBtn.addEventListener('click', () => {
+            if (!currentModelToPurchase) return;
+
+            // Rellenar datos del modal
+            modalImg.src = currentModelToPurchase.img;
+            modalModelName.textContent = currentModelToPurchase.name;
+            modalModelPrice.textContent = currentCalculatedPrice;
+            
+            // Resetear color y actualizar precios
+            colorPicker.selectedIndex = 0;
+            updatePriceSummary(); 
+            
+            modalMessage.textContent = '';
+            confirmPurchaseBtn.disabled = false;
+            confirmPurchaseBtn.textContent = 'Confirmar Pedido';
+
+            // Mostrar modal
+            purchaseModal.classList.remove('hidden');
+        });
 
         function closePurchaseModal() {
             purchaseModal.classList.add('hidden');
-            currentModelToPurchase = null;
         }
 
         async function handlePurchase() {
             if (!currentModelToPurchase || !userId) return;
 
-            const modelPrice = currentModelToPurchase.totalPrice; // Usar el precio total (base x3 + tarifa)
-            const selectedColorName = currentModelToPurchase.colorName;
-            const selectedColorHex = currentModelToPurchase.colorHex;
+            const { basePrice, colorFee, totalPrice } = updatePriceSummary();
+            const selectedColor = colorPicker.value;
 
-            if (currentUserCoins < modelPrice) {
+            // 1. Comprobar si el usuario tiene suficientes monedas
+            if (currentUserCoins < totalPrice) {
                 modalMessage.textContent = 'Error: No tienes suficientes monedas.';
                 modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
                 return;
             }
 
+            // Deshabilitar botón
             confirmPurchaseBtn.disabled = true;
             confirmPurchaseBtn.textContent = 'Procesando...';
             modalMessage.textContent = 'Procesando tu pedido...';
             modalMessage.className = 'mt-4 text-sm text-blue-600 font-medium';
 
             try {
-                const newCoinBalance = currentUserCoins - modelPrice;
+                // 2. Restar monedas del perfil del usuario
+                const newCoinBalance = currentUserCoins - totalPrice;
                 const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
                 await updateDoc(userProfileRef, {
                     coins: newCoinBalance
                 });
 
-                // 3. Crear doc PRIVADO
+                // 3. Crear el nuevo documento de pedido (en 2 sitios)
+                const orderData = {
+                    modelId: currentModelToPurchase.id, // ID de Thingiverse
+                    modelName: currentModelToPurchase.name,
+                    color: selectedColor,
+                    pricePaid: totalPrice,
+                    status: 'Pendiente', // Estado inicial
+                    createdAt: serverTimestamp(),
+                    userId: userId, // ID del usuario que compra
+                    userEmail: userEmail // Email del usuario (para el admin)
+                };
+
+                // 3a. Copia privada (para el cliente)
                 const userOrdersRef = collection(db, `/artifacts/${appId}/users/${userId}/orders`);
-                const privateOrderDoc = await addDoc(userOrdersRef, {
-                    modelId: currentModelToPurchase.id,
-                    modelName: currentModelToPurchase.name,
-                    colorName: selectedColorName,
-                    colorHex: selectedColorHex,
-                    pricePaid: modelPrice,
-                    status: 'Pendiente', 
-                    createdAt: serverTimestamp()
-                });
+                const docRef = await addDoc(userOrdersRef, orderData);
+                
+                // 3b. Copia pública (para el admin)
+                const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${docRef.id}`);
+                await setDoc(adminOrderRef, orderData);
 
-                // 4. Crear doc PÚBLICO (para admin)
-                const publicOrdersRef = collection(db, `/artifacts/${appId}/public/data/all-orders`);
-                await addDoc(publicOrdersRef, {
-                    privateOrderId: privateOrderDoc.id, 
-                    userId: userId,
-                    userEmail: auth.currentUser.email,
-                    modelId: currentModelToPurchase.id, 
-                    modelName: currentModelToPurchase.name,
-                    colorName: selectedColorName, 
-                    colorHex: selectedColorHex,   
-                    pricePaid: modelPrice,
-                    status: 'Pendiente', 
-                    createdAt: serverTimestamp()
-                });
 
-                // 5. Éxito
-                modalMessage.textContent = '¡Pedido realizado con éxito! Será enviado a impresión.';
+                // 4. Éxito
+                modalMessage.textContent = '¡Pedido realizado con éxito!';
                 modalMessage.className = 'mt-4 text-sm text-green-600 font-medium';
 
+                // Cerrar modal y volver a la tienda
                 setTimeout(() => {
                     closePurchaseModal();
                     showView('store');
@@ -1004,67 +853,183 @@
         cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
         confirmPurchaseBtn.addEventListener('click', handlePurchase);
 
-        // --- Lógica del Panel de Administración ---
+        // --- Lógica de Admin ---
 
-        addCoinsForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            adminMessage.textContent = ''; 
+        // Renderizar pedidos para el Admin
+        function renderAdminOrders(docs) {
+            adminOrdersList.innerHTML = '';
+            if (docs.length === 0) {
+                adminOrdersList.innerHTML = '<p class="text-gray-500 text-center">No hay pedidos de ningún usuario.</p>';
+                return;
+            }
+
+            const sortedDocs = docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
+
+            sortedDocs.forEach(docSnap => {
+                const order = docSnap.data();
+                const orderId = docSnap.id;
+                
+                const card = `
+                    <div class="admin-order-card">
+                        <div class="card-left">
+                            <div class="color-dot" style="background-color: ${order.color};"></div>
+                            <div>
+                                <p class="font-bold">${order.modelName}</p>
+                                <p class="text-xs text-gray-600">${order.userEmail} (ID: ${order.modelId})</p>
+                            </div>
+                        </div>
+                        <div class="card-right">
+                            <span class="price-tag">${order.pricePaid}</span>
+                            <select class="status-select" data-order-id="${orderId}">
+                                <option value="Pendiente" ${order.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                                <option value="Imprimiendo" ${order.status === 'Imprimiendo' ? 'selected' : ''}>Imprimiendo</option>
+                                <option value="Completado" ${order.status === 'Completado' ? 'selected' : ''}>Completado</option>
+                            </select>
+                            <button class="download-stl-btn" data-thing-id="${order.modelId}">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                adminOrdersList.innerHTML += card;
+            });
+
+            // Añadir listeners a los <select> de estado
+            document.querySelectorAll('.status-select').forEach(select => {
+                select.addEventListener('change', updateOrderStatus);
+            });
+            // Añadir listeners a los botones de descarga
+            document.querySelectorAll('.download-stl-btn').forEach(button => {
+                button.addEventListener('click', downloadSTL);
+            });
+        }
+
+        // Actualizar estado de un pedido (Admin)
+        async function updateOrderStatus(e) {
+            const newStatus = e.target.value;
+            const orderId = e.target.dataset.orderId;
+
+            // 1. Encontrar el pedido para saber a qué usuario pertenece
+            const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${orderId}`);
+            const orderSnap = await getDoc(adminOrderRef);
             
-            const amount = parseInt(document.getElementById('coins-amount').value);
-            const targetEmail = document.getElementById('target-user-email').value.trim();
-
-            if (!amount) {
-                adminMessage.textContent = "Cantidad inválida.";
-                adminMessage.className = 'text-sm text-red-600';
+            if (!orderSnap.exists()) {
+                console.error("No se pudo encontrar el pedido para actualizar.");
                 return;
             }
             
-            let targetUserId = userId; 
-            let targetProfileRef;
+            const orderData = orderSnap.data();
+            const targetUserId = orderData.userId;
 
+            // 2. Actualizar la copia pública (para el admin)
+            await updateDoc(adminOrderRef, { status: newStatus });
+
+            // 3. Actualizar la copia privada (para el cliente)
+            const userOrderRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/orders/${orderId}`);
+            await updateDoc(userOrderRef, { status: newStatus });
+
+            console.log(`Estado del pedido ${orderId} actualizado a ${newStatus}`);
+        }
+
+        // Formulario de Añadir/Quitar Monedas (Admin)
+        addCoinsForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const targetEmail = document.getElementById('target-user-email').value;
+            const amount = parseInt(document.getElementById('coins-amount').value);
+            
+            adminMessage.textContent = 'Procesando...';
+            
+            let targetUserId = userId; // Por defecto, el propio admin
+            let targetUserEmail = userEmail;
+            
             try {
+                // Si se especifica un email, buscar el
                 if (targetEmail) {
-                    // Buscar al usuario por email en la colección pública
-                    const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
+                    targetUserEmail = targetEmail;
+                    const lookupRef = doc(db, `/artifacts/${appId}/public/userLookup/${targetEmail}`);
                     const lookupSnap = await getDoc(lookupRef);
-                    
                     if (!lookupSnap.exists()) {
-                        adminMessage.textContent = "Error: Email de usuario no encontrado.";
-                        adminMessage.className = 'text-sm text-red-600';
-                        return;
+                        throw new Error("Usuario no encontrado con ese email.");
                     }
                     targetUserId = lookupSnap.data().userId;
-                    targetProfileRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/profile/data`);
-                } else {
-                    // Modificar la cuenta del propio admin
-                    targetProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
                 }
 
-                const targetProfileSnap = await getDoc(targetProfileRef);
-                if (!targetProfileSnap.exists()) {
-                     adminMessage.textContent = "Error: Perfil de usuario no encontrado.";
-                     adminMessage.className = 'text-sm text-red-600';
-                    return;
+                // Obtener el perfil del usuario objetivo
+                const profileRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/profile/data`);
+                const profileSnap = await getDoc(profileRef);
+                if (!profileSnap.exists()) {
+                    throw new Error("El perfil de este usuario no existe.");
                 }
 
-                const currentCoins = targetProfileSnap.data().coins || 0;
+                const currentCoins = profileSnap.data().coins || 0;
                 const newTotal = currentCoins + amount;
 
-                await updateDoc(targetProfileRef, {
-                    coins: newTotal
-                });
+                // Actualizar las monedas
+                await updateDoc(profileRef, { coins: newTotal });
 
-                adminMessage.textContent = `Éxito: ${amount} monedas ${amount > 0 ? 'añadidas' : 'quitadas'} a ${targetEmail || 'tu cuenta'}. Nuevo total: ${newTotal}`;
-                adminMessage.className = 'text-sm text-green-600';
+                adminMessage.textContent = `Éxito: ${amount} monedas aplicadas a ${targetUserEmail}. Nuevo total: ${newTotal}`;
+                adminMessage.className = 'text-sm mt-2 text-center text-green-600';
                 addCoinsForm.reset();
 
             } catch (error) {
                 console.error("Error al modificar monedas:", error);
-                adminMessage.textContent = `Error al modificar monedas: ${error.message}`;
-                adminMessage.className = 'text-sm text-red-600';
+                adminMessage.textContent = `Error: ${error.message}`;
+                adminMessage.className = 'text-sm mt-2 text-center text-red-600';
             }
         });
 
+
+        // --- Descarga de STL (Admin) ---
+        async function downloadSTL(e) {
+            const button = e.currentTarget;
+            const thingId = button.dataset.thingId;
+            button.disabled = true;
+            button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-blue-500"></div>';
+
+            // 1. Obtener la URL de descarga (desde nuestro worker)
+            try {
+                const filesEndpoint = `${workerUrl}/files?id=${thingId}`;
+                const response = await fetch(filesEndpoint);
+                
+                if (!response.ok) throw new Error("No se pudo obtener la lista de archivos.");
+                
+                const files = await response.json();
+                
+                // 2. Encontrar el primer archivo .stl o .obj
+                const modelFile = files.find(f => f.name.endsWith('.stl') || f.name.endsWith('.obj'));
+                
+                if (!modelFile) throw new Error("No se encontró archivo .stl o .obj");
+
+                const downloadUrl = modelFile.download_url;
+                const fileName = modelFile.name;
+
+                // 3. Descargar el archivo usando nuestro worker
+                // Pasamos la URL de descarga como parámetro a nuestro worker
+                const workerDownloadUrl = `${workerUrl}/download?url=${encodeURIComponent(downloadUrl)}`;
+                
+                const fileResponse = await fetch(workerDownloadUrl);
+                if (!fileResponse.ok) throw new Error("Error al descargar el archivo.");
+
+                const blob = await fileResponse.blob();
+                
+                // 4. Crear un enlace temporal y simular clic
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
+
+            } catch (error) {
+                console.error("Error al descargar STL:", error);
+                alert(`Error al descargar el archivo: ${error.message}`);
+            } finally {
+                // Restaurar botón
+                button.disabled = false;
+                button.innerHTML = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>';
+            }
+        }
     </script>
 </body>
 </html>
