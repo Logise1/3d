@@ -20,6 +20,36 @@
     <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
     <div id="app-container" class="min-h-screen hidden">
 
+        <!-- 
+          Barra de Navegación Móvil (visible en móvil) 
+          NUEVA SECCIÓN AÑADIDA
+        -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 sm:hidden">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Título -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span class="font-bold text-xl text-gray-900">Print3D</span>
+                    </div>
+                    <!-- Info de Usuario (Monedas) -->
+                    <div class="flex items-center">
+                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-3 py-1.5">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                            <span id="user-coins-mobile" class="font-bold text-sm">...</span>
+                        </div>
+                        <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Info de Usuario y Carga (para mostrar mientras se conecta) -->
+            <div class="bg-gray-100 py-2 px-4 border-t border-gray-200">
+                <div class="container mx-auto flex justify-between items-center text-xs text-gray-600">
+                    <span id="auth-status-mobile">Verificando...</span>
+                </div>
+            </div>
+        </nav>
+
         <!-- Barra de Navegación (visible en escritorio) -->
         <nav class="bg-white shadow-md sticky top-0 z-20 hidden sm:block">
             <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,7 +114,7 @@
         </main>
     </div>
 
-    <!-- Barra de Navegación Móvil -->
+    <!-- Barra de Navegación Móvil (Inferior) -->
     <nav id="mobile-nav" class="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex z-30">
         <!-- Enlace Mis Pedidos -->
         <a href="cart.html" id="mobile-nav-orders" class="mobile-nav-link active">
@@ -148,6 +178,7 @@
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
             document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
+            document.getElementById('auth-status-mobile').textContent = 'Error al conectar con Firebase.';
         }
 
         // --- Variables de Estado de la App ---
@@ -156,10 +187,18 @@
         let currentUserCoins = 0;
         
         // --- Elementos del DOM ---
+        // Headers Escritorio
         const authStatus = document.getElementById('auth-status');
         const userCoinsDisplay = document.getElementById('user-coins');
-        const appContainer = document.getElementById('app-container');
         const logoutBtn = document.getElementById('logout-btn');
+        
+        // Headers Móvil (NUEVO)
+        const authStatusMobile = document.getElementById('auth-status-mobile');
+        const userCoinsMobile = document.getElementById('user-coins-mobile');
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+        
+        // Contenedor
+        const appContainer = document.getElementById('app-container');
 
         // Navegación
         const navAdminOrders = document.getElementById('nav-admin-orders'); 
@@ -176,7 +215,9 @@
                 // Usuario está conectado
                 userId = user.uid;
                 currentUserEmail = user.email; 
-                authStatus.textContent = `Conectado como: ${user.email}`;
+                const statusText = `Conectado como: ${user.email}`;
+                authStatus.textContent = statusText;
+                authStatusMobile.textContent = statusText; // (NUEVO)
                 
                 appContainer.style.display = 'block'; // Mostrar app
                 
@@ -197,15 +238,18 @@
             }
         });
 
-        // Manejar click de Cerrar Sesión
-        logoutBtn.addEventListener('click', async () => {
+        // Manejar click de Cerrar Sesión (ambos botones)
+        const handleSignOut = async () => {
             try {
                 await signOut(auth);
                 // onAuthStateChanged se activará y redirigirá a login.html
-            } catch (error) {
+            } catch (error)
+                {
                 console.error("Error al cerrar sesión:", error);
             }
-        });
+        };
+        logoutBtn.addEventListener('click', handleSignOut);
+        logoutBtnMobile.addEventListener('click', handleSignOut); // (NUEVO)
 
 
         // --- Lógica de Firestore (Listeners en tiempo real) ---
@@ -221,8 +265,11 @@
                     const data = docSnap.data();
                     currentUserCoins = data.coins || 0;
                     userCoinsDisplay.textContent = currentUserCoins;
+                    userCoinsMobile.textContent = currentUserCoins; // (NUEVO)
                 } else {
                    console.error("Error: Perfil de usuario no encontrado.");
+                   userCoinsDisplay.textContent = '0';
+                   userCoinsMobile.textContent = '0'; // (NUEVO)
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
@@ -261,6 +308,7 @@
                     default: statusClass = 'bg-gray-100 text-gray-800';
                 }
                 
+                // (ACTUALIZADO) Usar colorHex y colorName
                 const colorHex = order.colorHex || '#9ca3af'; 
                 const colorName = order.colorName || 'Color';
 
