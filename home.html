@@ -15,14 +15,13 @@
     <link rel="stylesheet" href="styles.css">
 
 </head>
-<body class="antialiased text-gray-800">
+<body class="antialiased text-gray-800 bg-gray-100">
 
     <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
     <div id="app-container" class="min-h-screen hidden">
 
         <!-- 
           Barra de Navegación Móvil (visible en móvil) 
-          NUEVA SECCIÓN AÑADIDA
         -->
         <nav class="bg-white shadow-md sticky top-0 z-20 sm:hidden">
             <div class="container mx-auto px-4">
@@ -69,7 +68,7 @@
                             Mis Pedidos
                         </a>
                         <!-- Pestaña de Admin Pedidos -->
-                        <a href="#" id="nav-admin-orders" class_original="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                        <a href="#" id="nav-admin-orders" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Pedidos (Admin)
                         </a>
                     </div>
@@ -102,10 +101,6 @@
                 
                 <!-- Barra de Búsqueda -->
                 <div class="mb-6">
-                    <!-- 
-                      NOTA: type="search" permite la 'x' para borrar
-                      y activa el evento 'search' 
-                    -->
                     <input type="search" id="search-bar" placeholder="Buscar modelos por nombre..." class="w-full p-3 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 </div>
 
@@ -120,46 +115,84 @@
                 </div>
             </div>
 
-            <!-- Vista de Detalles del Producto (Oculta por defecto) -->
+            <!-- 
+              VISTA DE DETALLES DEL PRODUCTO (Re-diseñada) 
+            -->
             <div id="details-view" class="hidden">
-                <a href="#" id="back-to-store-btn" class="mb-4 inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                <a href="#" id="back-to-store-btn" class="mb-4 inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-800">
                     &larr; Volver a la tienda
                 </a>
 
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden">
-                    <div class="md:flex">
-                        <!-- Imagen del Producto -->
-                        <div class="md:w-1/2">
-                            <img id="details-img" src="https://placehold.co/800x600/e2e8f0/64748b?text=Cargando..." alt="Modelo 3D" class="w-full h-full object-cover">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-6 p-4 sm:p-8">
+                        
+                        <!-- Columna de Imagen (Izquierda) -->
+                        <div class="md:col-span-5">
+                            <img id="details-img" src="https://placehold.co/800x600/e2e8f0/64748b?text=Cargando..." alt="Modelo 3D" class="w-full h-auto object-cover rounded-lg shadow-md border border-gray-200">
                         </div>
                         
-                        <!-- Información y Compra -->
-                        <div class="md:w-1/2 p-8 flex flex-col justify-between">
-                            <div>
-                                <h1 id="details-name" class="text-4xl font-bold text-gray-900">Cargando nombre...</h1>
-                                <p id="details-desc" class="text-gray-600 text-base mt-4">Cargando descripción...</p>
-                            </div>
-                            
-                            <div class="mt-8">
-                                <div class="bg-gray-100 rounded-lg p-6">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <span class="text-xl font-medium text-gray-700">Precio Base:</span>
-                                        <!-- Precio y Spinner -->
-                                        <div id="details-price-container" class="flex items-center text-3xl font-bold text-yellow-800">
-                                            <div id="details-price-spinner" class="loader !w-8 !h-8 !border-2 !border-t-blue-500 mr-2"></div>
-                                            <span id="details-price-text">Calculando...</span>
-                                            <span id="details-price-currency" class="hidden ml-1">monedas</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div id="details-price-error" class="text-sm text-red-600 text-right -mt-2 mb-2"></div>
+                        <!-- Columna de Información (Centro) -->
+                        <div class="md:col-span-4">
+                            <h1 id="details-name" class="text-4xl font-bold text-gray-900">Cargando nombre...</h1>
+                            <p id="details-desc" class="text-gray-600 text-base mt-4">Cargando descripción...</p>
+                        </div>
 
-                                    <button id="open-purchase-modal-btn" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400">
-                                        Proceder a la Compra
-                                    </button>
+                        <!-- Columna de Compra (Derecha) -->
+                        <div class="md:col-span-3">
+                            <div id="details-buy-box" class="bg-gray-50 border border-gray-200 rounded-lg p-6 space-y-5 sticky top-24">
+                                
+                                <!-- Precio Base (de IA) -->
+                                <div>
+                                    <div id="details-price-container" class="flex items-baseline text-3xl font-bold text-gray-900">
+                                        <div id="details-price-spinner" class="loader !w-8 !h-8 !border-2 !border-t-blue-500 mr-2"></div>
+                                        <span id="details-price-text">...</span>
+                                        <span id="details-price-currency" class="hidden ml-1 text-yellow-800">monedas</span>
+                                    </div>
+                                    <div id="details-price-error" class="text-sm text-red-600 -mt-1"></div>
+                                    <span class="text-xs text-gray-500">Precio base (calculado por IA)</span>
                                 </div>
+                                
+                                <!-- Selector de Color (Movido aquí) -->
+                                <div>
+                                    <label for="details-color-picker" class="block text-sm font-medium text-gray-700">Elige un color:</label>
+                                    <select id="details-color-picker" name="color-picker" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" disabled>
+                                        <option value="Rojo" data-fee="0">Rojo</option>
+                                        <option value="Naranja" data-fee="0">Naranja</option>
+                                        <option value="Amarillo" data-fee="0">Amarillo</option>
+                                        <option value="Verde" data-fee="0">Verde</option>
+                                        <option value="Azul claro" data-fee="0">Azul claro</option>
+                                        <option value="Azul oscuro" data-fee="0">Azul oscuro</option>
+                                        <option value="Morado" data-fee="0">Morado</option>
+                                        <option value="Rosa" data-fee="0">Rosa</option>
+                                        <option value="Blanco" data-fee="25">Blanco (+25 monedas)</option>
+                                        <option value="Negro" data-fee="0">Negro</option>
+                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+50 monedas)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Resumen de Precio (Nuevo aquí) -->
+                                <div class="p-3 bg-white rounded-md border border-gray-200 space-y-1 text-sm">
+                                    <div class="flex justify-between">
+                                        <span>Precio Base:</span>
+                                        <span id="details-summary-base" class="font-medium">...</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Tarifa de Color:</span>
+                                        <span id="details-summary-fee" class="font-medium">...</span>
+                                    </div>
+                                    <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
+                                        <span>Precio Total:</span>
+                                        <span id="details-summary-total">...</span>
+                                    </div>
+                                </div>
+
+                                <!-- Botón de Compra -->
+                                <button id="open-purchase-modal-btn" class="w-full inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400" disabled>
+                                    Confirmar y Pagar
+                                </button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -213,7 +246,9 @@
         </main>
     </div>
 
-    <!-- Modal de Compra (Oculto por defecto) -->
+    <!-- 
+      MODAL DE COMPRA (Re-diseñado como Confirmación) 
+    -->
     <div id="purchase-modal" class="modal hidden fixed inset-0 z-30 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
         <div class="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             <!-- Fondo oscuro del modal -->
@@ -230,52 +265,26 @@
                         </div>
                         <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Confirmar Pedido</h3>
+                            
                             <div class="mt-4">
-                                <!-- Detalles del modelo -->
+                                <!-- Resumen del Pedido -->
                                 <div class="flex items-center space-x-4">
-                                    <img id="modal-img" src="https://placehold.co/100x100" alt="Modelo" class="w-24 h-24 rounded-md object-cover">
-                                    <div>
+                                    <img id="modal-img" src="https://placehold.co/100x100" alt="Modelo" class="w-24 h-24 rounded-md object-cover border">
+                                    <div class="space-y-1">
                                         <p id="modal-model-name" class="text-xl font-semibold">Nombre del Modelo</p>
+                                        <p class="text-sm text-gray-600">
+                                            Color: <b id="modal-color-name" class="text-gray-900">...</b>
+                                        </p>
                                         <div class="flex items-center text-lg text-yellow-800">
                                             <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
-                                            <span id="modal-model-price" class="font-bold">...</span>
-                                            <span class="ml-1">monedas (Base)</span>
+                                            <span id="modal-total-price" class="font-bold">... monedas</span>
+                                            <span class="ml-1 text-sm">(Total)</span>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <!-- Selector de Color (MODIFICADO) -->
-                                <div class="mt-6">
-                                    <label for="color-picker" class="block text-sm font-medium text-gray-700">Elige un color para tu impresión:</label>
-                                    <select id="color-picker" name="color-picker" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                        <option value="Rojo" data-fee="0">Rojo</option>
-                                        <option value="Naranja" data-fee="0">Naranja</option>
-                                        <option value="Amarillo" data-fee="0">Amarillo</option>
-                                        <option value="Verde" data-fee="0">Verde</option>
-                                        <option value="Azul claro" data-fee="0">Azul claro</option>
-                                        <option value="Azul oscuro" data-fee="0">Azul oscuro</option>
-                                        <option value="Morado" data-fee="0">Morado</option>
-                                        <option value="Rosa" data-fee="0">Rosa</option>
-                                        <option value="Blanco" data-fee="25">Blanco (+25 monedas)</option>
-                                        <option value="Negro" data-fee="0">Negro</option>
-                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+50 monedas)</option>
-                                    </select>
-                                </div>
-
-                                <!-- Resumen de Precio -->
-                                <div class="mt-4 p-3 bg-gray-50 rounded-md space-y-1 text-sm">
-                                    <div class="flex justify-between">
-                                        <span>Precio Base:</span>
-                                        <span id="price-summary-base" class="font-medium">...</span>
-                                    </div>
-                                    <div class="flex justify-between">
-                                        <span>Tarifa de Color:</span>
-                                        <span id="price-summary-fee" class="font-medium">+ 0 monedas</span>
-                                    </div>
-                                    <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-1 mt-1">
-                                        <span>Precio Total:</span>
-                                        <span id="price-summary-total">...</span>
-                                    </div>
+                                <div class="mt-4 text-sm text-gray-600">
+                                    <p>Se descontará este total de tu saldo. ¿Estás seguro?</p>
                                 </div>
 
                                 <!-- Mensajes de estado/error -->
@@ -381,15 +390,33 @@
         let isAdmin = false;
         let currentUserCoins = 0;
         let currentModelToPurchase = null;
-        let currentCalculatedPrice = 0;
+        let currentCalculatedPrice = 0; // Precio BASE (IA * 3)
+        let currentTotalPrice = 0;      // Precio BASE + Tarifa Color
+        let currentColorName = '';
+        let currentColorHex = '';
         
+        // (NUEVO) Mapa de colores
+        const colorMap = {
+            "Rojo": "#EF4444",
+            "Naranja": "#F97316",
+            "Amarillo": "#EAB308",
+            "Verde": "#22C55E",
+            "Azul claro": "#3B82F6",
+            "Azul oscuro": "#1D4ED8",
+            "Morado": "#8B5CF6",
+            "Rosa": "#EC4899",
+            "Blanco": "#F9FAFB",
+            "Negro": "#1F2937",
+            "Gris (blando)": "#9CA3AF"
+        };
+
         // --- Elementos del DOM ---
         // Headers Escritorio
         const authStatus = document.getElementById('auth-status');
         const userCoinsDisplay = document.getElementById('user-coins');
         const logoutBtn = document.getElementById('logout-btn');
         
-        // Headers Móvil (NUEVO)
+        // Headers Móvil
         const authStatusMobile = document.getElementById('auth-status-mobile');
         const userCoinsMobile = document.getElementById('user-coins-mobile');
         const logoutBtnMobile = document.getElementById('logout-btn-mobile');
@@ -415,32 +442,34 @@
         // Tienda
         const modelsGrid = document.getElementById('models-grid');
         const storeLoading = document.getElementById('store-loading');
-        const searchBar = document.getElementById('search-bar'); // (ACTUALIZADO)
+        const searchBar = document.getElementById('search-bar'); 
         
-        // Detalles
+        // Detalles (NUEVA ESTRUCTURA)
         const backToStoreBtn = document.getElementById('back-to-store-btn');
         const detailsImg = document.getElementById('details-img');
         const detailsName = document.getElementById('details-name');
         const detailsDesc = document.getElementById('details-desc');
+        // Cuadro de Compra
         const detailsPriceContainer = document.getElementById('details-price-container');
         const detailsPriceSpinner = document.getElementById('details-price-spinner');
         const detailsPriceText = document.getElementById('details-price-text');
         const detailsPriceCurrency = document.getElementById('details-price-currency');
         const detailsPriceError = document.getElementById('details-price-error');
+        const detailsColorPicker = document.getElementById('details-color-picker');
+        const detailsSummaryBase = document.getElementById('details-summary-base');
+        const detailsSummaryFee = document.getElementById('details-summary-fee');
+        const detailsSummaryTotal = document.getElementById('details-summary-total');
         const openPurchaseModalBtn = document.getElementById('open-purchase-modal-btn');
 
-        // Modal
+        // Modal (NUEVA ESTRUCTURA)
         const purchaseModal = document.getElementById('purchase-modal');
         const cancelPurchaseBtn = document.getElementById('cancel-purchase-btn');
         const confirmPurchaseBtn = document.getElementById('confirm-purchase-btn');
         const modalImg = document.getElementById('modal-img');
         const modalModelName = document.getElementById('modal-model-name');
-        const modalModelPrice = document.getElementById('modal-model-price');
-        const colorPicker = document.getElementById('color-picker');
+        const modalColorName = document.getElementById('modal-color-name');
+        const modalTotalPrice = document.getElementById('modal-total-price');
         const modalMessage = document.getElementById('modal-message');
-        const priceSummaryBase = document.getElementById('price-summary-base');
-        const priceSummaryFee = document.getElementById('price-summary-fee');
-        const priceSummaryTotal = document.getElementById('price-summary-total');
 
         // Admin
         const adminPanel = document.getElementById('admin-panel');
@@ -451,17 +480,14 @@
 
         // --- Lógica de Autenticación ---
 
-        // Listener del estado de autenticación
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Usuario está conectado
                 userId = user.uid;
                 userEmail = user.email;
                 const statusText = `Conectado como: ${user.email}`;
                 authStatus.textContent = statusText;
-                authStatusMobile.textContent = statusText; // (NUEVO)
+                authStatusMobile.textContent = statusText; 
                 
-                // Comprobar si es Admin
                 if (user.email === 'arielcapdevilagarcia@gmail.com') {
                     isAdmin = true;
                     adminPanel.classList.remove('hidden');
@@ -469,29 +495,22 @@
                     mobileNavAdminOrders.classList.remove('hidden');
                 }
                 
-                // Mostrar app
                 appContainer.style.display = 'block';
-                
-                // Configurar listeners de datos para este usuario
                 await setupUserListeners(userId);
-                
             } else {
-                // Usuario está desconectado -> Redirigir a login
                 window.location.href = 'login.html';
             }
         });
 
-        // Manejar click de Cerrar Sesión (ambos botones)
         const handleSignOut = async () => {
             try {
                 await signOut(auth);
-                // onAuthStateChanged se encargará de la redirección
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
             }
         };
         logoutBtn.addEventListener('click', handleSignOut);
-        logoutBtnMobile.addEventListener('click', handleSignOut); // (NUEVO)
+        logoutBtnMobile.addEventListener('click', handleSignOut); 
 
 
         // --- Lógica de Firestore (Listeners en tiempo real) ---
@@ -507,28 +526,28 @@
                     const data = docSnap.data();
                     currentUserCoins = data.coins || 0;
                     userCoinsDisplay.textContent = currentUserCoins;
-                    userCoinsMobile.textContent = currentUserCoins; // (NUEVO)
+                    userCoinsMobile.textContent = currentUserCoins; 
                 } else {
                     console.warn("Perfil de usuario no encontrado.");
                     userCoinsDisplay.textContent = '0';
-                    userCoinsMobile.textContent = '0'; // (NUEVO)
+                    userCoinsMobile.textContent = '0'; 
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
             });
 
-            // 2. Cargar modelos desde la API (Worker)
-            // (Se llama sin término de búsqueda para cargar /popular al inicio)
+            // 2. Cargar modelos iniciales
             await fetchModelsFromAPI('');
 
-            // 3. Listener para la barra de búsqueda (NUEVO)
+            // 3. Listener para la barra de búsqueda
             searchBar.addEventListener('search', (e) => {
-                // e.target.value estará vacío si el usuario borra la búsqueda
-                // o tendrá el término si presiona Enter.
                 fetchModelsFromAPI(e.target.value);
             });
+            
+            // 4. (NUEVO) Listener para el selector de color en detalles
+            detailsColorPicker.addEventListener('change', updateDetailsPriceSummary);
 
-            // 4. Si es Admin, cargar TODOS los pedidos
+            // 5. Si es Admin, cargar TODOS los pedidos
             if (isAdmin) {
                 const allOrdersRef = collection(db, `/artifacts/${appId}/public/allOrders`);
                 onSnapshot(query(allOrdersRef), (snapshot) => {
@@ -542,14 +561,12 @@
         }
 
         // --- Carga de Modelos desde API (Worker) ---
-        // (ACTUALIZADO para manejar la búsqueda)
         async function fetchModelsFromAPI(searchTerm = '') {
             storeLoading.style.display = 'flex';
             modelsGrid.innerHTML = '';
             
             let apiEndpoint = `${workerUrl}/popular`;
             if (searchTerm) {
-                // Si hay un término de búsqueda, usa el endpoint de búsqueda
                 apiEndpoint = `${workerUrl}/search?query=${encodeURIComponent(searchTerm)}`;
             }
             
@@ -566,23 +583,13 @@
                     throw new Error("La respuesta de la API no es un JSON válido.");
                 }); 
                 
-                // Adaptar los datos de Thingiverse
                 const models = thingiverseModels.map(thing => {
-                    
-                    // (NUEVA LÓGICA DE IMAGEN PARA ALTA CALIDAD)
                     let imageUrl;
-                    
                     if (thing.default_image?.url) {
-                        // Si existe la imagen por defecto (ej. desde /popular), usarla.
-                        // Esta URL ya suele ser de alta calidad (ej. _preview_featured.jpg)
                         imageUrl = thing.default_image.url;
                     } else if (thing.thumbnail) {
-                        // Si no hay imagen por defecto, pero sí miniatura (ej. desde /search)
-                        // Transformar la URL de la miniatura a una de mayor calidad.
-                        // Reemplazamos '_thumb_small.jpg' (o similar) por '_preview_featured.jpg'
                         imageUrl = thing.thumbnail.replace(/_thumb_[a-zA-Z]+(\.jpg|\.png|\.gif)/i, '_preview_featured$1');
                     } else {
-                        // Fallback por si no hay ninguna imagen
                         imageUrl = null; 
                     }
 
@@ -590,7 +597,7 @@
                         id: thing.id,
                         name: thing.name,
                         description: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
-                        imageUrl: imageUrl // Usar la URL procesada
+                        imageUrl: imageUrl
                     };
                 });
 
@@ -639,7 +646,6 @@
                 modelsGrid.innerHTML += card;
             });
 
-            // Añadir event listeners a los botones de "Detalles"
             document.querySelectorAll('.details-btn').forEach(button => {
                 button.addEventListener('click', openDetailsView);
             });
@@ -648,12 +654,13 @@
         // --- Lógica de Navegación de Vistas ---
 
         function showView(viewId) {
-            // Ocultar todas las vistas
             storeView.style.display = 'none';
             detailsView.style.display = 'none';
             adminOrdersView.style.display = 'none';
             
-            // Quitar clase activa de todos los enlaces nav
+            document.body.classList.remove('bg-white');
+            document.body.classList.add('bg-gray-100');
+            
             navStore.classList.remove('border-blue-500', 'text-gray-900');
             navStore.classList.add('border-transparent', 'text-gray-500');
             navAdminOrders.classList.remove('border-blue-500', 'text-gray-900');
@@ -662,13 +669,15 @@
             mobileNavAdminOrders.classList.remove('active');
 
 
-            // Mostrar la vista seleccionada
             if (viewId === 'store') {
                 storeView.style.display = 'block';
                 navStore.classList.add('border-blue-500', 'text-gray-900');
                 mobileNavStore.classList.add('active');
             } else if (viewId === 'details') {
                 detailsView.style.display = 'block';
+                // (NUEVO) Fondo blanco para la vista de detalles
+                document.body.classList.add('bg-white');
+                document.body.classList.remove('bg-gray-100');
             } else if (viewId === 'admin-orders') {
                 adminOrdersView.style.display = 'block';
                 navAdminOrders.classList.add('border-blue-500', 'text-gray-900');
@@ -676,25 +685,22 @@
             }
         }
 
-        // Navegación (Admin)
         navAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
         mobileNavAdminOrders.addEventListener('click', (e) => { e.preventDefault(); showView('admin-orders'); });
         
-        // Volver a la tienda desde Detalles
         backToStoreBtn.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
 
-        // --- Lógica de la Vista de Detalles ---
-        // (ACTUALIZADO para usar el worker para calcular precio)
+        // --- Lógica de la Vista de Detalles (MODIFICADA) ---
+        
         async function openDetailsView(e) {
             const { id, name, img, desc } = e.target.dataset;
             
-            currentModelToPurchase = { id, name, img, desc }; // Guardar datos
+            currentModelToPurchase = { id, name, img, desc }; 
             
-            // 1. Mostrar vista de detalles y resetear estado
             showView('details');
-            window.scrollTo(0, 0); // Subir al inicio
+            window.scrollTo(0, 0); 
 
-            // Resetear UI de Detalles
+            // Resetear UI de Detalles y Cuadro de Compra
             detailsImg.src = img;
             detailsName.textContent = name;
             detailsDesc.textContent = desc;
@@ -703,15 +709,17 @@
             detailsPriceCurrency.classList.add('hidden');
             detailsPriceError.textContent = '';
             openPurchaseModalBtn.disabled = true;
+            detailsColorPicker.disabled = true;
+            detailsColorPicker.selectedIndex = 0;
+            detailsSummaryBase.textContent = '...';
+            detailsSummaryFee.textContent = '...';
+            detailsSummaryTotal.textContent = '...';
 
-            // --- Cálculo de Precio (Llamada 2: Worker) ---
+            // --- Cálculo de Precio (Worker) ---
             try {
-                // Hacemos la llamada POST a nuestro worker
                 const response = await fetch(`${workerUrl}/calculate-price`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: name, img: img })
                 });
 
@@ -721,22 +729,14 @@
                 }
 
                 const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error);
-                }
+                if (data.error) throw new Error(data.error);
 
-                currentCalculatedPrice = data.calculatedPrice;
-
-                // Actualizar UI de Detalles
+                currentCalculatedPrice = data.calculatedPrice; // Guardar precio BASE
                 detailsPriceText.textContent = currentCalculatedPrice;
 
             } catch (error) {
                 console.error("Error al calcular el precio con el Worker:", error);
-                
-                // Fallback (mismo que antes)
-                currentCalculatedPrice = 50 * 3; // 50 (base) * 3
-                
+                currentCalculatedPrice = 150; // Fallback 50 * 3
                 detailsPriceText.textContent = currentCalculatedPrice;
                 detailsPriceError.textContent = 'Error de IA. Usando precio base.';
             
@@ -745,46 +745,51 @@
                 detailsPriceSpinner.style.display = 'none';
                 detailsPriceCurrency.classList.remove('hidden');
                 openPurchaseModalBtn.disabled = false;
+                detailsColorPicker.disabled = false;
+                
+                // Actualizar el resumen de precio por primera vez
+                updateDetailsPriceSummary();
             }
         }
-
-        // --- Lógica del Modal de Compra ---
-
-        function updatePriceSummary() {
+        
+        // (NUEVA) Función para actualizar el resumen en el cuadro de compra
+        function updateDetailsPriceSummary() {
             const basePrice = currentCalculatedPrice;
-            const selectedOption = colorPicker.options[colorPicker.selectedIndex];
+            const selectedOption = detailsColorPicker.options[detailsColorPicker.selectedIndex];
             const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
             const totalPrice = basePrice + colorFee;
 
-            // Actualizado para usar el precio base (ya multiplicado * 3)
-            priceSummaryBase.textContent = `${basePrice} monedas`;
-            priceSummaryFee.textContent = `+ ${colorFee} monedas`;
-            priceSummaryTotal.textContent = `${totalPrice} monedas`;
+            // Actualizar UI en la página de detalles
+            detailsSummaryBase.textContent = `${basePrice} monedas`;
+            detailsSummaryFee.textContent = `+ ${colorFee} monedas`;
+            detailsSummaryTotal.textContent = `${totalPrice} monedas`;
 
-            return { basePrice, colorFee, totalPrice };
+            // Guardar en variables globales para el modal
+            currentTotalPrice = totalPrice;
+            currentColorName = selectedOption.value;
+            currentColorHex = colorMap[currentColorName] || '#9CA3AF';
         }
 
-        // Evento al cambiar el color
-        colorPicker.addEventListener('change', updatePriceSummary);
 
-        // Abrir Modal
+        // --- Lógica del Modal de Compra (MODIFICADA) ---
+
+        // Abrir Modal de Confirmación
         openPurchaseModalBtn.addEventListener('click', () => {
             if (!currentModelToPurchase) return;
+            
+            // Asegurarse de que los datos de precio están actualizados
+            updateDetailsPriceSummary(); 
 
-            // Rellenar datos del modal
+            // Rellenar datos del modal de confirmación
             modalImg.src = currentModelToPurchase.img;
             modalModelName.textContent = currentModelToPurchase.name;
-            modalModelPrice.textContent = currentCalculatedPrice;
-            
-            // Resetear color y actualizar precios
-            colorPicker.selectedIndex = 0;
-            updatePriceSummary(); 
+            modalColorName.textContent = currentColorName;
+            modalTotalPrice.textContent = `${currentTotalPrice} monedas`;
             
             modalMessage.textContent = '';
             confirmPurchaseBtn.disabled = false;
             confirmPurchaseBtn.textContent = 'Confirmar Pedido';
 
-            // Mostrar modal
             purchaseModal.classList.remove('hidden');
         });
 
@@ -795,74 +800,52 @@
         async function handlePurchase() {
             if (!currentModelToPurchase || !userId) return;
 
-            const { basePrice, colorFee, totalPrice } = updatePriceSummary();
-            
-            // (ACTUALIZADO) Mapear el valor del color a su representación hexadecimal
-            const colorMap = {
-                "Rojo": "#EF4444",
-                "Naranja": "#F97316",
-                "Amarillo": "#EAB308",
-                "Verde": "#22C55E",
-                "Azul claro": "#3B82F6",
-                "Azul oscuro": "#1D4ED8",
-                "Morado": "#8B5CF6",
-                "Rosa": "#EC4899",
-                "Blanco": "#F9FAFB",
-                "Negro": "#1F2937",
-                "Gris (blando)": "#9CA3AF"
-            };
-            const selectedColorName = colorPicker.value;
-            const selectedColorHex = colorMap[selectedColorName] || '#9CA3AF'; // Fallback a gris
-
-
             // 1. Comprobar si el usuario tiene suficientes monedas
-            if (currentUserCoins < totalPrice) {
+            // (Los datos ya están en las variables globales)
+            if (currentUserCoins < currentTotalPrice) {
                 modalMessage.textContent = 'Error: No tienes suficientes monedas.';
                 modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
                 return;
             }
 
-            // Deshabilitar botón
             confirmPurchaseBtn.disabled = true;
             confirmPurchaseBtn.textContent = 'Procesando...';
             modalMessage.textContent = 'Procesando tu pedido...';
             modalMessage.className = 'mt-4 text-sm text-blue-600 font-medium';
 
             try {
-                // 2. Restar monedas del perfil del usuario
-                const newCoinBalance = currentUserCoins - totalPrice;
+                // 2. Restar monedas
+                const newCoinBalance = currentUserCoins - currentTotalPrice;
                 const userProfileRef = doc(db, `/artifacts/${appId}/users/${userId}/profile/data`);
                 await updateDoc(userProfileRef, {
                     coins: newCoinBalance
                 });
 
-                // 3. Crear el nuevo documento de pedido (en 2 sitios)
+                // 3. Crear el documento de pedido
                 const orderData = {
-                    modelId: currentModelToPurchase.id, // ID de Thingiverse
+                    modelId: currentModelToPurchase.id,
                     modelName: currentModelToPurchase.name,
-                    colorName: selectedColorName, // (NUEVO)
-                    colorHex: selectedColorHex, // (NUEVO)
-                    pricePaid: totalPrice,
-                    status: 'Pendiente', // Estado inicial
+                    colorName: currentColorName, 
+                    colorHex: currentColorHex, 
+                    pricePaid: currentTotalPrice,
+                    status: 'Pendiente',
                     createdAt: serverTimestamp(),
-                    userId: userId, // ID del usuario que compra
-                    userEmail: userEmail // Email del usuario (para el admin)
+                    userId: userId, 
+                    userEmail: userEmail 
                 };
 
-                // 3a. Copia privada (para el cliente)
+                // 3a. Copia privada (cliente)
                 const userOrdersRef = collection(db, `/artifacts/${appId}/users/${userId}/orders`);
                 const docRef = await addDoc(userOrdersRef, orderData);
                 
-                // 3b. Copia pública (para el admin)
+                // 3b. Copia pública (admin)
                 const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${docRef.id}`);
                 await setDoc(adminOrderRef, orderData);
-
 
                 // 4. Éxito
                 modalMessage.textContent = '¡Pedido realizado con éxito!';
                 modalMessage.className = 'mt-4 text-sm text-green-600 font-medium';
 
-                // Cerrar modal y volver a la tienda
                 setTimeout(() => {
                     closePurchaseModal();
                     showView('store');
@@ -882,7 +865,6 @@
 
         // --- Lógica de Admin ---
 
-        // Renderizar pedidos para el Admin
         function renderAdminOrders(docs) {
             adminOrdersList.innerHTML = '';
             if (docs.length === 0) {
@@ -896,7 +878,6 @@
                 const order = docSnap.data();
                 const orderId = docSnap.id;
                 
-                // (ACTUALIZADO) Usar colorHex y colorName
                 const colorHex = order.colorHex || '#9ca3af'; 
                 const colorName = order.colorName || 'Color';
 
@@ -924,22 +905,18 @@
                 adminOrdersList.innerHTML += card;
             });
 
-            // Añadir listeners a los <select> de estado
             document.querySelectorAll('.status-select').forEach(select => {
                 select.addEventListener('change', updateOrderStatus);
             });
-            // Añadir listeners a los botones de descarga
             document.querySelectorAll('.download-stl-btn').forEach(button => {
                 button.addEventListener('click', downloadSTL);
             });
         }
 
-        // Actualizar estado de un pedido (Admin)
         async function updateOrderStatus(e) {
             const newStatus = e.target.value;
             const orderId = e.target.dataset.orderId;
 
-            // 1. Encontrar el pedido para saber a qué usuario pertenece
             const adminOrderRef = doc(db, `/artifacts/${appId}/public/allOrders/${orderId}`);
             const orderSnap = await getDoc(adminOrderRef);
             
@@ -951,17 +928,14 @@
             const orderData = orderSnap.data();
             const targetUserId = orderData.userId;
 
-            // 2. Actualizar la copia pública (para el admin)
             await updateDoc(adminOrderRef, { status: newStatus });
 
-            // 3. Actualizar la copia privada (para el cliente)
             const userOrderRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/orders/${orderId}`);
             await updateDoc(userOrderRef, { status: newStatus });
 
             console.log(`Estado del pedido ${orderId} actualizado a ${newStatus}`);
         }
 
-        // Formulario de Añadir/Quitar Monedas (Admin)
         addCoinsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const targetEmail = document.getElementById('target-user-email').value;
@@ -969,14 +943,12 @@
             
             adminMessage.textContent = 'Procesando...';
             
-            let targetUserId = userId; // Por defecto, el propio admin
+            let targetUserId = userId;
             let targetUserEmail = userEmail;
             
             try {
-                // Si se especifica un email, buscar el
                 if (targetEmail) {
                     targetUserEmail = targetEmail;
-                    // (ACTUALIZADO) Ruta correcta a la tabla de búsqueda pública
                     const lookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${targetEmail}`);
                     const lookupSnap = await getDoc(lookupRef);
                     if (!lookupSnap.exists()) {
@@ -985,7 +957,6 @@
                     targetUserId = lookupSnap.data().userId;
                 }
 
-                // Obtener el perfil del usuario objetivo
                 const profileRef = doc(db, `/artifacts/${appId}/users/${targetUserId}/profile/data`);
                 const profileSnap = await getDoc(profileRef);
                 if (!profileSnap.exists()) {
@@ -995,7 +966,6 @@
                 const currentCoins = profileSnap.data().coins || 0;
                 const newTotal = currentCoins + amount;
 
-                // Actualizar las monedas
                 await updateDoc(profileRef, { coins: newTotal });
 
                 adminMessage.textContent = `Éxito: ${amount} monedas aplicadas a ${targetUserEmail}. Nuevo total: ${newTotal}`;
@@ -1010,16 +980,13 @@
         });
 
 
-        // --- Descarga de STL (Admin) ---
         async function downloadSTL(e) {
             const button = e.currentTarget;
             const thingId = button.dataset.thingId;
             button.disabled = true;
-            // (ACTUALIZADO) Reemplazar icono con spinner
             const originalIcon = button.innerHTML;
             button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-blue-500"></div>';
 
-            // 1. Obtener la URL de descarga (desde nuestro worker)
             try {
                 const filesEndpoint = `${workerUrl}/files?id=${thingId}`;
                 const response = await fetch(filesEndpoint);
@@ -1028,7 +995,6 @@
                 
                 const files = await response.json();
                 
-                // 2. Encontrar el primer archivo .stl o .obj
                 const modelFile = files.find(f => f.name.endsWith('.stl') || f.name.endsWith('.obj'));
                 
                 if (!modelFile) throw new Error("No se encontró archivo .stl o .obj");
@@ -1036,8 +1002,6 @@
                 const downloadUrl = modelFile.download_url;
                 const fileName = modelFile.name;
 
-                // 3. Descargar el archivo usando nuestro worker
-                // Pasamos la URL de descarga como parámetro a nuestro worker
                 const workerDownloadUrl = `${workerUrl}/download?url=${encodeURIComponent(downloadUrl)}`;
                 
                 const fileResponse = await fetch(workerDownloadUrl);
@@ -1045,7 +1009,6 @@
 
                 const blob = await fileResponse.blob();
                 
-                // 4. Crear un enlace temporal y simular clic
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
                 link.download = fileName;
@@ -1056,10 +1019,8 @@
 
             } catch (error) {
                 console.error("Error al descargar STL:", error);
-                // (ACTUALIZADO) No usar alert()
                 detailsPriceError.textContent = `Error al descargar: ${error.message}`;
             } finally {
-                // Restaurar botón
                 button.disabled = false;
                 button.innerHTML = originalIcon;
             }
