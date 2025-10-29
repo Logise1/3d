@@ -1,0 +1,59 @@
+/* Estilo base con la fuente Inter */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* gris claro de fondo */
+}
+
+/* Estilo para el spinner de carga */
+.loader {
+    border: 4px solid #f3f3f3; /* Light grey */
+    border-top: 4px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Estilos para la barra de navegación móvil */
+.mobile-nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280; /* text-gray-500 */
+    flex-grow: 1;
+    flex-basis: 0%;
+    padding-top: 0.5rem; /* py-2 */
+    padding-bottom: 0.5rem; /* py-2 */
+    text-align: center; /* Asegurar centrado del texto */
+    min-width: 0; /* Prevenir que los items se encojan */
+}
+
+.mobile-nav-link svg {
+    margin-bottom: 0.25rem; /* Espacio entre icono y texto */
+}
+
+.mobile-nav-link.active {
+    color: #2563eb; /* text-blue-600 */
+}
+
+/* Estilos para el modal (de login.html, home.html) */
+/* (Asegúrate de copiar también los estilos .modal si los usas en otros archivos) */
+.modal {
+    transition: opacity 0.25s ease;
+}
+.modal-content {
+    transition: transform 0.25s ease;
+}
+.modal.hidden {
+    pointer-events: none;
+    opacity: 0;
+}
+.modal.hidden .modal-content {
+    transform: scale(0.95);
+}
