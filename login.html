@@ -52,29 +52,31 @@
                     <svg class="w-12 h-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                 </div>
                 <h2 class="text-center text-3xl font-bold text-gray-900">Crear Cuenta</h2>
-                <div>
-                    <label for="register-email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
-                    <input id="register-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                </div>
-                <div>
-                    <label for="register-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
-                    <input id="register-password" name="password" type="password" autocomplete="new-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                </div>
                 
-                <!-- CAMPOS NUEVOS AÑADIDOS -->
+                <!-- (NUEVO) Nombre Real -->
                 <div>
-                    <label for="register-real-name" class="block text-sm font-medium text-gray-700">Nombre Real (para la entrega)</label>
-                    <input id="register-real-name" name="real-name" type="text" autocomplete="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <label for="register-name" class="block text-sm font-medium text-gray-700">Nombre Real</label>
+                    <input id="register-name" name="name" type="text" autocomplete="name" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                    <p class="mt-1 text-xs text-gray-500">Necesario para saber a quién entregar el pedido. Si no es tu nombre real, no se entregará.</p>
                 </div>
+
+                <!-- (NUEVO) Teléfono -->
                 <div>
                     <label for="register-phone" class="block text-sm font-medium text-gray-700">Número de Teléfono</label>
                     <input id="register-phone" name="phone" type="tel" autocomplete="tel" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
                 </div>
                 
-                <!-- TEXTO EXPLICATIVO AÑADIDO -->
-                <p class="text-xs text-gray-500 text-center">
-                    El <b>Nombre Real</b> es necesario para que sepamos a quién entregar el pedido. Si no proporcionas un nombre real, no podremos completar la entrega.
-                </p>
+                <!-- Email -->
+                <div>
+                    <label for="register-email" class="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                    <input id="register-email" name="email" type="email" autocomplete="email" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
+                
+                <!-- Contraseña -->
+                <div>
+                    <label for="register-password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                    <input id="register-password" name="password" type="password" autocomplete="new-password" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+                </div>
                 
                 <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     Crear Cuenta
@@ -170,8 +172,7 @@
         }
 
         // --- Variables de Estado ---
-        // let isNewUser = false; // Flag para mostrar el popup de bienvenida (Modificado)
-        let newUserData = null; // (NUEVO) Almacena datos extra del nuevo usuario
+        let isNewUser = false; // Flag para mostrar el popup de bienvenida
         
         // --- Elementos del DOM ---
         const loginForm = document.getElementById('login-form');
@@ -191,11 +192,12 @@
                 // Usuario está conectado
                 console.log("Usuario conectado:", user.uid);
                 
-                // (MODIFICADO) Comprobar si es un usuario nuevo (recién registrado)
-                if (newUserData && newUserData.uid === user.uid) {
-                    await setupNewUserProfile(user.uid, user.email, newUserData.realName, newUserData.phone);
+                // (MODIFICADO) Esta función ya no crea el perfil, solo redirige.
+                // La creación del perfil se hace en el listener de 'submit'.
+                if (isNewUser) {
+                    // El perfil ya se creó. Solo mostrar el modal.
                     welcomeModal.classList.remove('hidden'); // Mostrar modal de bienvenida
-                    newUserData = null; // Resetear el flag
+                    isNewUser = false; // Resetear el flag
                 } else {
                     // Si es un usuario existente, simplemente redirigir
                     window.location.href = 'home.html';
@@ -206,8 +208,8 @@
             }
         });
 
-        // (MODIFICADO) Crear perfil para usuario nuevo
-        async function setupNewUserProfile(userId, email, realName, phone) {
+        // (MODIFICADO) Aceptar todos los datos
+        async function setupNewUserProfile(userId, email, name, phone) {
             console.log("Creando perfil para nuevo usuario...");
             try {
                 // Crear perfil privado
@@ -215,13 +217,13 @@
                 await setDoc(userProfileRef, { 
                     userId: userId,
                     email: email, 
-                    realName: realName, // (NUEVO)
-                    phone: phone,       // (NUEVO)
+                    realName: name, // Guardar
+                    phone: phone,   // Guardar
                     coins: 0, // Empezar con 0 monedas
                     createdAt: serverTimestamp()
                 });
 
-                // Crear entrada en la tabla pública de búsqueda
+                // Crear entrada en la tabla pública de búsqueda (Ruta CORREGIDA)
                 const userLookupRef = doc(db, `/artifacts/${appId}/public/data/user-lookup/${email}`);
                 await setDoc(userLookupRef, { userId: userId });
                 console.log("Perfil y public user lookup created.");
@@ -233,8 +235,7 @@
         // Manejar envío de formulario de Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // isNewUser = false; (Modificado)
-            newUserData = null; // (NUEVO)
+            isNewUser = false; 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             authMessage.textContent = ''; 
@@ -248,36 +249,39 @@
             }
         });
 
-        // (MODIFICADO) Manejar envío de formulario de Registro
+        // Manejar envío de formulario de Registro (MODIFICADO)
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // isNewUser = true; // Marcar como usuario nuevo (Modificado)
-            
+            // isNewUser = true; // (MOVIDO) Mover el flag al try/catch
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
-            const realName = document.getElementById('register-real-name').value; // (NUEVO)
-            const phone = document.getElementById('register-phone').value;       // (NUEVO)
+            const name = document.getElementById('register-name').value;
+            const phone = document.getElementById('register-phone').value;
             authMessage.textContent = ''; 
 
-            // (NUEVO) Validación simple
-            if (!realName || !phone) {
-                 authMessage.textContent = 'Por favor, rellena el nombre real y el teléfono.';
-                 return;
+            // Validación
+            if (!name || !phone) {
+                authMessage.textContent = 'El nombre real y el teléfono son obligatorios.';
+                return;
             }
             
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-                // (NUEVO) Guardar datos temporalmente para onAuthStateChanged
-                newUserData = {
-                    uid: userCredential.user.uid,
-                    realName: realName,
-                    phone: phone
-                };
-                // onAuthStateChanged se encargará de crear el perfil y mostrar el modal
+                const user = userCredential.user;
+                
+                // ¡¡¡FIX!!! Llamar a setupNewUserProfile AQUÍ, pasando los datos.
+                await setupNewUserProfile(user.uid, email, name, phone);
+                
+                // Marcar como usuario nuevo DESPUÉS de que todo haya funcionado
+                isNewUser = true; 
+                
+                // onAuthStateChanged se disparará automáticamente ahora
+                // y verá el flag isNewUser, mostrando el modal.
+
             } catch (error) {
                 console.error("Error de registro:", error.code);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
-                newUserData = null; // Resetear en caso de error
+                isNewUser = false; // Resetear en caso de error
             }
         });
 
