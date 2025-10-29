@@ -2,11 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=/login">
   <title>Redirigiendo...</title>
   <script>
-    // Redirección por JavaScript (por si el meta no funciona)
-    window.location.href = "/login";
+    // Obtiene la URL actual (por ejemplo, logise1.github.io/3d)
+    const currentUrl = window.location.origin + window.location.pathname;
+    
+    // Asegura que no termine con "/"
+    const basePath = currentUrl.endsWith('/') ? currentUrl.slice(0, -1) : currentUrl;
+    
+    // Redirige a /login dentro del mismo directorio
+    window.location.href = basePath + "/login";
   </script>
 </head>
 <body>
