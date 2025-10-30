@@ -13,6 +13,13 @@
     <!-- Carga de estilos CSS externos -->
     <link rel="stylesheet" href="styles.css">
 
+    <!-- (NUEVO) Carga de Three.js y complementos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" xintegrity="sha512-dLxUelApnYxpLt6K2iomGngnQfsUePsyhFErgG/TA8RemoteL/ixB5MCTA9BEhFmNSGshEaWMLG/TcuS/PMIDC5g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+
+
     <!-- Estilos para el slider de confirmación (copiados de home.html) -->
     <style>
         .slider-container {
@@ -72,35 +79,41 @@
             border-color: #059669; /* green-600 */
         }
 
-        /* Estilos para la vista previa del llavero */
-        #keychain-preview {
-            background-color: #d1d5db; /* gray-300 */
-            border-radius: 12px;
-            height: 100px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            padding: 0 20px;
-            border: 4px solid #9ca3af; /* gray-400 */
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-            overflow: hidden;
+        /* (NUEVO) Estilos para la vista previa 3D */
+        #keychain-preview-container {
             position: relative;
+            width: 100%;
+            height: 300px; /* Más altura para el 3D */
+            background-color: #e5e7eb; /* gray-200 */
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: grab;
         }
-        #keychain-ring-hole {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background-color: #f3f4f6; /* gray-100 */
-            border: 4px solid #9ca3af; /* gray-400 */
-            margin-right: 15px;
-            flex-shrink: 0;
+        #keychain-preview-container:active {
+            cursor: grabbing;
         }
-        #keychain-text {
-            font-size: 48px;
-            font-weight: bold;
-            color: #374151; /* gray-700 */
-            text-transform: uppercase;
-            white-space: nowrap;
+        #keychain-preview-container canvas {
+            display: block;
+        }
+        /* (NUEVO) Spinner de carga para el visor 3D */
+        #preview-loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        .loader-3d {
+          border: 4px solid #f3f3f3; /* Light grey */
+          border-top: 4px solid #3b82f6; /* blue-500 */
+          border-radius: 50%;
+          width: 40px;
+          height: 40px;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
     </style>
@@ -201,12 +214,15 @@
                         <!-- Columna de Diseño (Col 1) -->
                         <div class="lg:col-span-2 p-6 flex flex-col justify-center">
                             
-                            <!-- Vista Previa -->
+                            <!-- (MODIFICADO) Vista Previa 3D -->
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Vista Previa</label>
-                                <div id="keychain-preview">
-                                    <div id="keychain-ring-hole"></div>
-                                    <span id="keychain-text">TEXTO</span>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Vista Previa 3D (Arrastra para rotar)</label>
+                                <div id="keychain-preview-container">
+                                    <!-- El canvas 3D se insertará aquí -->
+                                    <div id="preview-loader" class="flex flex-col items-center text-gray-600">
+                                        <div class="loader-3d"></div>
+                                        <span class="mt-2 text-sm font-medium">Cargando visor 3D...</span>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -229,42 +245,42 @@
                                 <!-- Precio (Monedas y Euros) -->
                                 <div>
                                     <div id="details-price-container" class="flex items-center text-3xl font-bold text-gray-900">
-                                        <!-- No hay spinner, el precio es instantáneo -->
-                                        <!-- (PRECIO ACTUALIZADO) 500 + 4*50 = 700 -->
-                                        <span id="details-price-text">700</span>
+                                        <!-- (PRECIO ACTUALIZADO) -->
+                                        <span id="details-price-text">500</span>
                                         <span id="details-price-currency" class="ml-1.5 text-yellow-800">
                                             <svg class="w-7 h-7 inline-block -mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
                                         </span>
                                     </div>
-                                    <!-- (PRECIO ACTUALIZADO) 700 / 250 = 2.80 -->
-                                    <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1">(aprox. 2.80€)</div>
+                                    <!-- (PRECIO ACTUALIZADO) -->
+                                    <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1">(aprox. 2.00€)</div>
                                     <div id="details-price-error" class="text-sm text-red-600 ml-1 mt-1"></div>
                                 </div>
 
-                                <!-- Selector de Color -->
+                                <!-- Selector de Color (NUEVO: con data-hex) -->
                                 <div class="pt-4 border-t">
                                     <label for="color-picker" class="block text-sm font-medium text-gray-700">Elige un color:</label>
                                     <select id="color-picker" name="color-picker" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-                                        <option value="Rojo" data-fee="0">Rojo</option>
-                                        <option value="Naranja" data-fee="0">Naranja</option>
-                                        <option value="Amarillo" data-fee="0">Amarillo</option>
-                                        <option value="Verde" data-fee="0">Verde</option>
-                                        <option value="Azul claro" data-fee="0">Azul claro</option>
-                                        <option value="Azul oscuro" data-fee="0">Azul oscuro</option>
-                                        <option value="Morado" data-fee="0">Morado</option>
-                                        <option value="Rosa" data-fee="0">Rosa</option>
-                                        <option value="Blanco" data-fee="25">Blanco (+25 monedas)</option>
-                                        <option value="Negro" data-fee="0">Negro</option>
-                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+50 monedas)</option>
+                                        <option value="Rojo" data-fee="0" data-hex="#E53E3E">Rojo</option>
+                                        <option value="Naranja" data-fee="0" data-hex="#ED8936">Naranja</option>
+                                        <option value="Amarillo" data-fee="0" data-hex="#ECC94B">Amarillo</option>
+                                        <option value="Verde" data-fee="0" data-hex="#48BB78">Verde</option>
+                                        <option value="Azul claro" data-fee="0" data-hex="#4299E1">Azul claro</option>
+                                        <option value="Azul oscuro" data-fee="0" data-hex="#3182CE">Azul oscuro</option>
+                                        <option value="Morado" data-fee="0" data-hex="#805AD5">Morado</option>
+                                        <option value="Rosa" data-fee="0" data-hex="#ED64A6">Rosa</option>
+                                        <option value="Blanco" data-fee="25" data-hex="#FFFFFF">Blanco (+25 monedas)</option>
+                                        <option value="Negro" data-fee="0" data-hex="#1A202C">Negro</option>
+                                        <option value="Gris (blando)" data-fee="50" data-hex="#A0AEC0">Gris (blando) (+50 monedas)</option>
                                     </select>
                                 </div>
 
                                 <!-- Resumen de Precio -->
                                 <div class="pt-4 border-t space-y-2 text-sm">
                                     <div class="flex justify-between">
-                                        <span class="text-gray-600">Precio Base (500 + 50/letra):</span>
+                                        <!-- (TEXTO ACTUALIZADO) -->
+                                        <span class="text-gray-600">Precio Base (Fijo):</span>
                                         <!-- (PRECIO ACTUALIZADO) -->
-                                        <span id="price-summary-base" class="font-medium">700 monedas</span>
+                                        <span id="price-summary-base" class="font-medium">500 monedas</span>
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Tarifa de Color:</span>
@@ -273,7 +289,7 @@
                                     <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
                                         <span>Precio Total:</span>
                                         <!-- (PRECIO ACTUALIZADO) -->
-                                        <span id="price-summary-total">700 monedas</span>
+                                        <span id="price-summary-total">500 monedas</span>
                                     </div>
                                 </div>
 
@@ -410,6 +426,21 @@
             setDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // (NUEVO) Importar Three.js - ya están cargados globalmente
+        const {
+            Scene,
+            PerspectiveCamera,
+            WebGLRenderer,
+            BoxGeometry,
+            TorusGeometry,
+            MeshStandardMaterial,
+            Mesh,
+            AmbientLight,
+            DirectionalLight,
+            Color,
+            FontLoader
+        } = THREE;
+
         // --- Configuración de Firebase ---
         const firebaseConfig = {
           apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
@@ -444,10 +475,17 @@
         let currentUserCoins = 0;
         let currentPurchaseDetails = {}; // { basePrice, colorFee, totalPrice, selectedColor, customText }
         
-        // (PRECIOS ACTUALIZADOS)
-        const KEYCHAIN_BASE_PRICE = 500;
-        const KEYCHAIN_PRICE_PER_CHAR = 50;
+        // (PRECIO ACTUALIZADO)
+        const KEYCHAIN_BASE_PRICE = 500; // Precio fijo
+        const KEYCHAIN_PRICE_PER_CHAR = 0; // Ya no se cobra por letra
         
+        // (NUEVO) Variables de Three.js
+        let scene, camera, renderer, controls;
+        let keychainBodyMaterial, keychainTextMaterial, keychainRingMaterial;
+        let textMesh, bodyMesh, ringMesh;
+        let threeJsFont;
+        let isThreeJsInitialized = false;
+
         // --- Elementos del DOM ---
         // Headers Escritorio
         const authStatus = document.getElementById('auth-status');
@@ -468,7 +506,10 @@
 
         // Personalizar
         const keychainTextInput = document.getElementById('keychain-text-input');
-        const keychainTextPreview = document.getElementById('keychain-text');
+        // (NUEVO) 3D Preview
+        const previewContainer = document.getElementById('keychain-preview-container');
+        const previewLoader = document.getElementById('preview-loader');
+        
         const detailsPriceText = document.getElementById('details-price-text');
         const detailsPriceEuros = document.getElementById('details-price-euros');
         const detailsPriceError = document.getElementById('details-price-error');
@@ -511,6 +552,12 @@
                 appContainer.style.display = 'block'; // Mostrar app
                 
                 await setupUserListeners(userId);
+
+                // (NUEVO) Iniciar el visor 3D solo una vez
+                if (!isThreeJsInitialized) {
+                    initThreeJs();
+                    isThreeJsInitialized = true;
+                }
 
                 // Comprobar si es admin para mostrar el enlace de admin
                 if (userEmail === 'arielcapdevilagarcia@gmail.com') {
@@ -562,24 +609,182 @@
             });
         }
 
+        // --- (NUEVO) Lógica de Three.js ---
+
+        function initThreeJs() {
+            console.log("Iniciando Three.js...");
+            
+            // 1. Escena
+            scene = new Scene();
+            scene.background = new Color(0xe5e7eb); // Coincide con gray-200
+
+            // 2. Cámara
+            const aspect = previewContainer.clientWidth / previewContainer.clientHeight;
+            camera = new PerspectiveCamera(75, aspect, 0.1, 1000);
+            camera.position.z = 15;
+
+            // 3. Renderer
+            renderer = new WebGLRenderer({ antialias: true });
+            renderer.setSize(previewContainer.clientWidth, previewContainer.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            previewContainer.appendChild(renderer.domElement);
+
+            // 4. Controles (OrbitControls)
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // Movimiento más suave
+            controls.dampingFactor = 0.1;
+            controls.minDistance = 5; // Zoom mínimo
+            controls.maxDistance = 30; // Zoom máximo
+            controls.autoRotate = true; // Rotación automática
+            controls.autoRotateSpeed = 1.0;
+
+            // Detener autorotación al interactuar
+            controls.addEventListener('start', () => {
+                controls.autoRotate = false;
+            });
+
+            // 5. Luces
+            const ambientLight = new AmbientLight(0xffffff, 0.7);
+            scene.add(ambientLight);
+            const directionalLight = new DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            // 6. Materiales (se crearán una vez)
+            keychainBodyMaterial = new MeshStandardMaterial({
+                color: 0xA0AEC0, // Gris por defecto
+                roughness: 0.5,
+                metalness: 0.1
+            });
+            
+            keychainTextMaterial = new MeshStandardMaterial({
+                color: 0xffffff, // Texto blanco
+                roughness: 0.5,
+                metalness: 0.1
+            });
+            
+            keychainRingMaterial = new MeshStandardMaterial({
+                color: 0xc0c0c0, // Plata
+                roughness: 0.2,
+                metalness: 0.8
+            });
+            
+            // 7. Cargar la Fuente (¡Importante!)
+            const fontLoader = new FontLoader();
+            fontLoader.load(
+                'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json',
+                (font) => {
+                    console.log("Fuente cargada");
+                    threeJsFont = font;
+                    // Ocultar loader
+                    previewLoader.style.display = 'none';
+                    // Crear el llavero inicial
+                    updatePriceAndPreview(); // Usar la función principal para sincronizar todo
+                },
+                undefined,
+                (error) => {
+                    console.error('Error al cargar la fuente de Three.js', error);
+                    previewLoader.innerHTML = '<span class="text-red-600 font-medium">Error al cargar visor 3D.</span>';
+                }
+            );
+
+            // 8. Bucle de Animación
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update(); // Para damping y autorotación
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            // 9. Manejar Redimensionamiento
+            window.addEventListener('resize', onWindowResize, false);
+            function onWindowResize() {
+                if (!renderer || !camera || !previewContainer) return;
+                const width = previewContainer.clientWidth;
+                const height = previewContainer.clientHeight;
+                
+                if (width === 0 || height === 0) return; // Evitar división por cero si está oculto
+
+                camera.aspect = width / height;
+                camera.updateProjectionMatrix();
+                renderer.setSize(width, height);
+            }
+        }
+
+        /**
+         * (NUEVO) Actualiza el modelo 3D en la escena
+         */
+        function update3DKeychain(text, colorHex) {
+            if (!threeJsFont || !scene) return; // Esperar a que la fuente cargue
+
+            // 1. Limpiar mallas antiguas
+            if (textMesh) scene.remove(textMesh);
+            if (bodyMesh) scene.remove(bodyMesh);
+            if (ringMesh) scene.remove(ringMesh);
+
+            // 2. Actualizar color del material
+            keychainBodyMaterial.color.set(colorHex);
+
+            // 3. Crear Geometría del Texto
+            const textGeom = new THREE.TextGeometry(text, {
+                font: threeJsFont,
+                size: 3,
+                height: 0.5, // Grosor del texto
+                curveSegments: 12,
+                bevelEnabled: true,
+                bevelThickness: 0.1,
+                bevelSize: 0.1,
+                bevelOffset: 0,
+                bevelSegments: 5
+            });
+            textGeom.computeBoundingBox();
+            textGeom.computeVertexNormals();
+            
+            // Centrar la geometría del texto
+            const textWidth = textGeom.boundingBox.max.x - textGeom.boundingBox.min.x;
+            textGeom.translate(-textWidth / 2, -1.5, 0.25); // (x, y, z) - z para que esté "encima" del cuerpo
+
+            textMesh = new Mesh(textGeom, keychainTextMaterial);
+            
+            // 4. Crear Cuerpo del Llavero (basado en el ancho del texto)
+            const bodyWidth = textWidth + 3; // Añadir padding
+            const bodyHeight = 5;
+            const bodyDepth = 0.5; // Grosor del cuerpo
+            
+            const bodyGeom = new BoxGeometry(bodyWidth, bodyHeight, bodyDepth);
+            bodyMesh = new Mesh(bodyGeom, keychainBodyMaterial);
+            
+            // 5. Crear Anillo
+            const ringGeom = new TorusGeometry(1, 0.2, 16, 100);
+            ringMesh = new Mesh(ringGeom, keychainRingMaterial);
+            // Posicionar el anillo a la izquierda del cuerpo
+            ringMesh.position.x = -(bodyWidth / 2) - 1.2; // (ancho/2) + radio_anillo + espacio
+            ringMesh.position.y = 0;
+
+            // 6. Añadir todo a la escena
+            scene.add(textMesh);
+            scene.add(bodyMesh);
+            scene.add(ringMesh);
+        }
+
         // --- Lógica del Personalizador ---
 
         function updatePriceAndPreview() {
             const text = keychainTextInput.value.toUpperCase() || 'TEXTO';
-            keychainTextPreview.textContent = text;
-
-            // Calcular precio base (con los nuevos precios)
-            const charCount = text === 'TEXTO' ? 4 : text.length; // Contar "TEXTO" como 4
-            const basePrice = KEYCHAIN_BASE_PRICE + (charCount * KEYCHAIN_PRICE_PER_CHAR);
             
+            // (PRECIO ACTUALIZADO)
+            // const charCount = text === 'TEXTO' ? 4 : text.length; // Ya no se usa
+            const basePrice = KEYCHAIN_BASE_PRICE; // Precio fijo
+
             // Calcular precio total con color
             const selectedOption = colorPicker.options[colorPicker.selectedIndex];
             const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
             const totalPrice = basePrice + colorFee;
             const selectedColor = selectedOption.value;
+            const selectedColorHex = selectedOption.dataset.hex || '#A0AEC0'; // (NUEVO)
 
             // Guardar detalles para el modal
-            currentPurchaseDetails = { basePrice, colorFee, totalPrice, selectedColor, customText: text };
+            currentPurchaseDetails = { basePrice, colorFee, totalPrice, selectedColor, selectedColorHex, customText: text };
 
             // Actualizar UI de Precios
             detailsPriceText.textContent = totalPrice;
@@ -592,14 +797,17 @@
             
             // Habilitar botón de pago
             openPurchaseModalBtn.disabled = false;
+
+            // (NUEVO) Actualizar el modelo 3D
+            update3DKeychain(text, selectedColorHex);
         }
 
         // Event Listeners para actualizar
         keychainTextInput.addEventListener('input', updatePriceAndPreview);
         colorPicker.addEventListener('change', updatePriceAndPreview);
 
-        // Inicializar
-        updatePriceAndPreview();
+        // Inicializar (se llamará después de que cargue la fuente 3D)
+        // updatePriceAndPreview(); // (MOVIDO) a initThreeJs -> fontLoader.onLoad
 
 
         // --- Lógica del Modal de Confirmación ---
@@ -724,7 +932,8 @@
         async function handlePurchase() {
             if (!userId || !currentPurchaseDetails) return;
 
-            const { totalPrice, selectedColor, customText } = currentPurchaseDetails;
+            // (MODIFICADO) Obtener también el hex del color
+            const { totalPrice, selectedColor, customText, selectedColorHex } = currentPurchaseDetails;
 
             // Doble comprobación de fondos
             if (currentUserCoins < totalPrice) {
@@ -752,7 +961,8 @@
                     modelId: "CUSTOM_KEYCHAIN", // ID Especial
                     modelName: "Llavero Personalizado",
                     customText: customText, // Texto personalizado
-                    color: selectedColor,
+                    colorName: selectedColor, // (NUEVO) Nombre del color
+                    colorHex: selectedColorHex, // (NUEVO) Hex del color
                     pricePaid: totalPrice,
                     status: 'Pendiente', // Estado inicial
                     createdAt: serverTimestamp(),
@@ -765,6 +975,7 @@
                 const docRef = await addDoc(userOrdersRef, orderData);
                 
                 // 2b. Copia pública (para el admin)
+                // (FIX) Asegurarse que el admin pueda leer esto
                 const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', docRef.id);
                 await setDoc(adminOrderRef, orderData);
 
@@ -778,7 +989,7 @@
                     closePurchaseModal();
                     keychainTextInput.value = '';
                     colorPicker.selectedIndex = 0;
-                    updatePriceAndPreview();
+                    updatePriceAndPreview(); // Esto actualizará el 3D al estado inicial
                     cancelPurchaseBtn.disabled = false;
                 }, 2000);
 
