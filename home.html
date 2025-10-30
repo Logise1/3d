@@ -437,7 +437,8 @@
             onSnapshot, 
             query,
             serverTimestamp,
-            setLogLevel
+            setLogLevel,
+            deleteDoc // (NUEVO) Importar deleteDoc
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
@@ -759,6 +760,11 @@
                 }); 
                 
                 // (FIX) La API devuelve un array directamente, no un objeto .hits
+                const thingiverseModels = searchResults || [];
+                
+                const models = thingiverseModels.map(thing => {
+                    // (FIX CALIDAD)
+                    // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
                 const thingiverseModels = searchResults || [];
                 
                 const models = thingiverseModels.map(thing => {
@@ -1228,6 +1234,10 @@
                             <button class="download-stl-btn p-2 rounded-md bg-gray-100 text-gray-700 hover:bg-blue-100 hover:text-blue-700 ${isKeychain ? 'hidden' : ''}" title="Descargar STL" data-thing-id="${order.modelId}">
                                 <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                             </button>
+                            <!-- (NUEVO) Botón de Cancelar para Admin -->
+                            <button class="admin-cancel-btn p-2 rounded-md bg-gray-100 text-gray-700 hover:bg-red-100 hover:text-red-700" title="Cancelar Pedido" data-order-id="${orderId}" data-user-id="${order.userId || ''}">
+                                <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                            </button>
                         </div>
                     </div>
                 `;
@@ -1245,6 +1255,59 @@
                 button.removeEventListener('click', downloadSTL);
                 button.addEventListener('click', downloadSTL);
             });
+            
+            // (NUEVO) Adjuntar listeners para botones de cancelar (admin)
+            adminOrdersList.querySelectorAll('.admin-cancel-btn').forEach(button => {
+                button.removeEventListener('click', handleAdminCancelOrder); // Prevenir duplicados
+                button.addEventListener('click', handleAdminCancelOrder);
+            });
+        }
+
+        // (NUEVO) Manejar cancelación de pedido por Admin
+        async function handleAdminCancelOrder(e) {
+            const button = e.currentTarget;
+            const { orderId, userId } = button.dataset;
+
+            if (!orderId) {
+                console.error("No orderId found on button");
+                return;
+            }
+            
+            button.disabled = true;
+            button.innerHTML = '<div class="loader !w-5 !h-5 !border-2 !border-t-red-500"></div>';
+            adminMessage.textContent = `Cancelando pedido ${orderId}...`;
+            adminMessage.className = 'text-sm mt-2 text-center text-yellow-600';
+
+            try {
+                // 1. Delete public order
+                const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', orderId);
+                await deleteDoc(adminOrderRef);
+
+                // 2. Delete private order (if userId is available)
+                if (userId) {
+                    const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
+                    const userOrderSnap = await getDoc(userOrderRef); // Check if it exists
+                    if (userOrderSnap.exists()) {
+                        await deleteDoc(userOrderRef);
+                    } else {
+                        console.warn(`No se encontró el pedido privado para el usuario ${userId}`);
+                    }
+                } else {
+                    console.warn("No userId provided, no se pudo borrar el pedido privado.");
+                }
+                
+                adminMessage.textContent = `Pedido ${orderId} cancelado con éxito.`;
+                adminMessage.className = 'text-sm mt-2 text-center text-green-600';
+                // The onSnapshot will handle UI removal
+
+            } catch (error) {
+                console.error("Error al cancelar pedido (admin):", error);
+                adminMessage.textContent = `Error al cancelar: ${error.message}`;
+                adminMessage.className = 'text-sm mt-2 text-center text-red-600';
+                button.disabled = false;
+                // Restore icon
+                button.innerHTML = '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>';
+            }
         }
 
         // Actualizar estado de un pedido (Admin)
