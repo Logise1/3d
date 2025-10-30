@@ -1062,7 +1062,7 @@
         function updateCarouselUI() {
             if (!carouselWrapper) return;
             // Mover el wrapper
-            carouselWrapper.style.transform = \`translateX(-${currentSlideIndex * 100}%)\`;
+            carouselWrapper.style.transform = `translateX(-${currentSlideIndex * 100}%)`;
             
             // Actualizar dots
             document.querySelectorAll('.carousel-dot-btn').forEach((dot, index) => {
