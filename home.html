@@ -754,8 +754,11 @@
 
                 // 3. Adaptar los datos obtenidos
                 const models = modelDetailsList.map(thing => {
-                    const rawImageUrl = thing.default_image?.url || thing.thumbnail;
-                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('_display_large', '_featured_large') : '';
+                    // (FIX CALIDAD)
+                    let highResImgUrl = thing.default_image?.url; // 1. Intentar coger la URL original
+                    if (!highResImgUrl) { // 2. Fallback a coger el thumbnail y mejorarlo
+                        highResImgUrl = thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '';
+                    }
 
                     return {
                         id: thing.id,
@@ -798,8 +801,10 @@
                 const thingiverseModels = searchResults || [];
                 
                 const models = thingiverseModels.map(thing => {
+                    // (FIX CALIDAD)
                     const rawImageUrl = thing.thumbnail;
-                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('thumbnail', 'featured_large') : '';
+                    // 'preview_large' es generalmente mejor calidad que 'featured_large' para los thumbnails de búsqueda
+                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('thumbnail', 'preview_large') : '';
                     
                     return {
                         id: thing.id,
@@ -962,14 +967,22 @@
                     throw new Error('No se pudieron cargar detalles de imágenes');
                 })
                 .then(thingData => {
-                    if (thingData.images && Array.isArray(thingData.images)) {
-                        // Obtener URLs de tamaño 'featured_large'
-                        const imageUrls = thingData.images
-                            .map(imgObj => imgObj.sizes?.find(s => s.type === 'featured_large')?.url)
-                            .filter(url => !!url); // Filtrar nulos
-                        // Usar Set para evitar duplicados, poniendo la imagen principal primero
-                        allImages = [...new Set([img, ...imageUrls])];
+                    // (FIX CALIDAD)
+                    let newImageUrls = [];
+                    // 1. Get the original URL of the default image
+                    if (thingData.default_image?.url) {
+                        newImageUrls.push(thingData.default_image.url);
                     }
+                    // 2. Get the original URLs of all other images
+                    if (thingData.images && Array.isArray(thingData.images)) {
+                        const otherImageUrls = thingData.images
+                            .map(imgObj => imgObj.url) // Get the top-level original URL
+                            .filter(url => !!url); // Filter nulos
+                        newImageUrls.push(...otherImageUrls);
+                    }
+                    
+                    // Use Set to ensure no duplicates. Start with 'img' (from card) as fallback.
+                    allImages = [...new Set([img, ...newImageUrls].filter(url => !!url))];
                 })
                 .catch(err => {
                     console.warn("Error al cargar imágenes (se usará solo la principal):", err.message);
@@ -1567,4 +1580,3 @@
     </script>
 </body>
 </html>
-
