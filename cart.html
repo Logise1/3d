@@ -151,7 +151,10 @@
             collection, 
             onSnapshot, 
             query,
-            setLogLevel
+            setLogLevel,
+            getDoc,      // (NUEVO)
+            updateDoc,   // (NUEVO)
+            deleteDoc    // (NUEVO)
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
@@ -321,13 +324,95 @@
                                 <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
                             </div>
                         </div>
-                        <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass} self-start sm:self-auto">
-                            ${order.status}
-                        </span>
+                        <!-- (MODIFICADO) Contenedor para status y botón de cancelar -->
+                        <div class="flex flex-col items-end space-y-2 mt-3 sm:mt-0">
+                            <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass} self-start sm:self-auto">
+                                ${order.status}
+                            </span>
+                            <!-- (NUEVO) Botón de Cancelar para Usuario (condicional) -->
+                            ${order.status === 'Pendiente' ? `
+                            <button class="user-cancel-btn text-xs font-medium text-red-600 hover:text-red-800"
+                                data-order-id="${doc.id}"
+                                data-price-paid="${order.pricePaid}"
+                                data-status="${order.status}">
+                                Cancelar (Reembolso 80%)
+                            </button>
+                            ` : ''}
+                        </div>
                     </div>
                 `;
                 ordersList.innerHTML += orderItem;
             });
+
+            // (NUEVO) Adjuntar listeners para los botones de cancelar
+            ordersList.querySelectorAll('.user-cancel-btn').forEach(button => {
+                button.removeEventListener('click', handleUserCancelOrder); // Prevenir duplicados
+                button.addEventListener('click', handleUserCancelOrder);
+            });
+        }
+
+        // (NUEVO) Manejar cancelación de pedido por Usuario
+        async function handleUserCancelOrder(e) {
+            const button = e.currentTarget;
+            const { orderId, pricePaid, status } = button.dataset;
+
+            if (status !== 'Pendiente') {
+                console.error("Intento de cancelar un pedido que no está pendiente.");
+                button.style.display = 'none'; // Ocultar botón si el estado cambió
+                return;
+            }
+            
+            // --- NO USAR CONFIRM ---
+            // if (!confirm("¿Seguro que quieres cancelar este pedido? Se te reembolsará el 80% de las monedas.")) {
+            //     return;
+            // }
+            // TODO: Reemplazar esto con un modal de confirmación personalizado si se desea.
+            // Por ahora, procederemos directamente para mantener la funcionalidad.
+
+            button.disabled = true;
+            button.textContent = "Cancelando...";
+
+            const refundAmount = Math.floor(parseFloat(pricePaid) * 0.8);
+
+            try {
+                // 1. Get user profile to update coins
+                const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
+                const profileSnap = await getDoc(userProfileRef);
+                
+                if (!profileSnap.exists()) {
+                    throw new Error("No se pudo encontrar el perfil de usuario para el reembolso.");
+                }
+                
+                const currentCoins = profileSnap.data().coins || 0;
+                const newTotal = currentCoins + refundAmount;
+                
+                // 2. Update coins
+                await updateDoc(userProfileRef, { coins: newTotal });
+
+                // 3. Delete public order
+                const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', orderId);
+                const adminOrderSnap = await getDoc(adminOrderRef); // Comprobar si existe
+                if (adminOrderSnap.exists()) {
+                    await deleteDoc(adminOrderRef);
+                } else {
+                    console.warn(`No se encontró el pedido público ${orderId} para borrar.`);
+                }
+
+
+                // 4. Delete private order
+                const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
+                // No es necesario comprobar, ya que el listener se basa en esta colección
+                await deleteDoc(userOrderRef);
+                
+                console.log(`Pedido ${orderId} cancelado. Reembolsadas ${refundAmount} monedas.`);
+                // onSnapshot se encargará de actualizar la UI
+                
+            } catch (error) {
+                console.error("Error al cancelar pedido (usuario):", error);
+                button.disabled = false;
+                button.textContent = "Error, reintentar";
+                // (Opcional: mostrar error en algún sitio)
+            }
         }
     </script>
 </body>
