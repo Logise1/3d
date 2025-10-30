@@ -713,8 +713,11 @@
                 // 3. Adaptar los datos obtenidos
                 const models = modelDetailsList.map(thing => {
                     // (FIX CALIDAD)
-                    let highResImgUrl = thing.default_image?.url; // 1. Intentar coger la URL original
-                    if (!highResImgUrl) { // 2. Fallback a coger el thumbnail y mejorarlo
+                    // (MODIFICADO) 1. Intentar coger preview_image (suele ser la de la tarjeta)
+                    // (MODIFICADO) 2. Fallback a default_image.url (original)
+                    // (MODIFICADO) 3. Fallback a thumbnail mejorado
+                    let highResImgUrl = thing.preview_image || thing.default_image?.url;
+                    if (!highResImgUrl) { // 3. Fallback a coger el thumbnail y mejorarlo
                         highResImgUrl = thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '';
                     }
 
@@ -760,9 +763,8 @@
                 
                 const models = thingiverseModels.map(thing => {
                     // (FIX CALIDAD)
-                    const rawImageUrl = thing.thumbnail;
-                    // 'preview_large' es generalmente mejor calidad que 'featured_large' para los thumbnails de búsqueda
-                    const highResImgUrl = rawImageUrl ? rawImageUrl.replace('thumbnail', 'preview_large') : '';
+                    // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
+                    const highResImgUrl = thing.preview_image || (thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '');
                     
                     return {
                         id: thing.id,
