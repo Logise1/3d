@@ -578,7 +578,7 @@
                 authStatusMobile.textContent = statusText;
                 
                 // Comprobar si es Admin
-                if (user.email === 'arielcapdevilagarcia@gmail.com') {
+                if (['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'].includes(user.email)) {
                     isAdmin = true;
                     adminPanel.classList.remove('hidden');
                     navAdminOrders.classList.remove('hidden');
