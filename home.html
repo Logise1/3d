@@ -210,7 +210,20 @@
                         <div class="lg:col-span-1 p-6 border-l border-gray-200 flex flex-col">
                             <!-- Nombre y Descripción -->
                             <div>
-                                <h1 id="details-name" class="text-3xl font-bold text-gray-900">Cargando nombre...</h1>
+                                <!-- (NUEVO) Contenedor para Nombre y Botón Compartir -->
+                                <div class="flex justify-between items-center">
+                                    <h1 id="details-name" class="text-3xl font-bold text-gray-900">Cargando nombre...</h1>
+                                    <!-- (NUEVO) Botón de Compartir -->
+                                    <div class="relative">
+                                        <button id="share-btn" class="ml-4 p-2 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800" title="Compartir">
+                                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 5.314 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.686a2.25 2.25 0 1 0 3.935-2.186 2.25 2.25 0 0 0-3.935 2.186Z" />
+                                            </svg>
+                                        </button>
+                                        <!-- (NUEVO) Mensaje de confirmación -->
+                                        <span id="share-confirm" class="absolute -top-8 right-0 text-xs bg-green-600 text-white px-2 py-1 rounded shadow-lg hidden whitespace-nowrap">¡Enlace copiado!</span>
+                                    </div>
+                                </div>
                                 <p id="details-desc" class="text-gray-600 text-base mt-2">Cargando descripción...</p>
                             </div>
                             
@@ -484,6 +497,7 @@
         let currentCalculatedPrice = 0; // Precio base (solo monedas)
         let currentPurchaseDetails = {}; // { basePrice, colorFee, totalPrice, selectedColor }
         let adminOrdersUnsubscribe = null; // Para detener el listener de admin
+        let sharedItemId = null; // (NUEVO) Para enlaces compartidos
         
         // --- Elementos del DOM ---
         // Headers Escritorio
@@ -525,6 +539,8 @@
         const detailsImg = document.getElementById('details-img'); // (RESTAURADO)
         const detailsName = document.getElementById('details-name');
         const detailsDesc = document.getElementById('details-desc');
+        const shareBtn = document.getElementById('share-btn'); // (NUEVO)
+        const shareConfirm = document.getElementById('share-confirm'); // (NUEVO)
         const detailsPriceContainer = document.getElementById('details-price-container');
         const detailsPriceSpinner = document.getElementById('details-price-spinner');
         const detailsPriceText = document.getElementById('details-price-text');
@@ -565,6 +581,19 @@
         const adminOrdersLoading = document.getElementById('admin-orders-loading');
         const adminOrdersList = document.getElementById('admin-orders-list');
 
+        // --- (NUEVO) Lógica de Enlace Compartido (Checkear al cargar) ---
+        function checkSharedLink() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareId = urlParams.get('share_id');
+            if (shareId) {
+                console.log("Enlace compartido detectado, ID:", shareId);
+                sharedItemId = shareId;
+                // Limpiar la URL para que no se quede el parámetro
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        }
+        checkSharedLink(); // Llamar a la función al inicio
+
         // --- Lógica de Autenticación ---
 
         // Listener del estado de autenticación
@@ -577,8 +606,8 @@
                 authStatus.textContent = statusText;
                 authStatusMobile.textContent = statusText;
                 
-                // Comprobar si es Admin
-                if (['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'].includes(user.email)) {
+                // (MODIFICADO) Comprobar si es Admin
+                if (user.email === 'arielcapdevilagarcia@gmail.com' || user.email === 'cloenarvaez@gmail.com') {
                     isAdmin = true;
                     adminPanel.classList.remove('hidden');
                     navAdminOrders.classList.remove('hidden');
@@ -602,6 +631,13 @@
                 // Configurar listeners de datos para este usuario
                 await setupUserListeners(userId);
                 
+                // (NUEVO) Comprobar si venimos de un enlace compartido
+                if (sharedItemId) {
+                    console.log("Usuario autenticado, abriendo item compartido:", sharedItemId);
+                    await openSharedItem(sharedItemId); // (MODIFICADO) Esperar a que cargue
+                    sharedItemId = null; // Limpiar para que no se recargue
+                }
+
             } else {
                 // Usuario está desconectado -> Redirigir a login
                 window.location.href = 'login.html';
@@ -650,7 +686,10 @@
             });
 
             // 2. Cargar modelos (MODIFICADO: desde featured.array con IDs)
-            await fetchFeaturedModels();
+            // (MODIFICADO) No cargar modelos si venimos de un enlace compartido
+            if (!sharedItemId) {
+                await fetchFeaturedModels();
+            }
 
             // 3. Si es Admin, cargar TODOS los pedidos (y solo si no hay ya un listener)
             if (isAdmin && !adminOrdersUnsubscribe) {
@@ -763,9 +802,6 @@
                 const thingiverseModels = searchResults || [];
                 
                 const models = thingiverseModels.map(thing => {
-                    // (FIX CALIDAD)
-                    // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
-                    
                     // (FIX CALIDAD)
                     // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
                     const highResImgUrl = thing.preview_image || (thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '');
@@ -886,10 +922,50 @@
 
         // --- Lógica de la Vista de Detalles (Amazon-Style) ---
 
-        // (MODIFICADO)
+        // (NUEVA) Función para abrir un item desde un enlace compartido
+        async function openSharedItem(id) {
+            console.log(`Abriendo item compartido ${id}`);
+            storeLoading.style.display = 'flex'; // Mostrar spinner principal
+            storeView.style.display = 'none'; // Ocultar tienda
+            
+            const detailsEndpoint = `${workerUrl}/details?id=${id}`;
+            try {
+                const res = await fetch(detailsEndpoint);
+                if (!res.ok) throw new Error("No se pudieron obtener detalles del item compartido");
+                
+                const thing = await res.json();
+                
+                // Simular el objeto 'dataset' que openDetailsView espera
+                const highResImgUrl = thing.preview_image || (thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '');
+                const mockDataset = {
+                    id: thing.id,
+                    name: thing.name,
+                    desc: `Autor: ${thing.creator?.name || 'Desconocido'} (vía Thingiverse)`,
+                    img: highResImgUrl
+                };
+                
+                // Llamar a la función de detalles refactorizada
+                await openDetailsViewWithData(mockDataset);
+
+            } catch (error) {
+                console.error("Error al abrir item compartido:", error);
+                // Si falla, solo carga la tienda normal
+                showView('store');
+            } finally {
+                storeLoading.style.display = 'none';
+            }
+        }
+
+        // (REFACTORIZADO) openDetailsView ahora es un wrapper
         async function openDetailsView(e) {
             const button = e.target.closest('button');
-            const { id, name, img, desc } = button.dataset;
+            const dataset = button.dataset;
+            await openDetailsViewWithData(dataset);
+        }
+        
+        // (REFACTORIZADO) Función principal de detalles, ahora acepta datos
+        async function openDetailsViewWithData(dataset) {
+            const { id, name, img, desc } = dataset;
             
             currentModelToPurchase = { id, name, img, desc }; // Guardar datos
             
@@ -977,6 +1053,50 @@
         }
 
         // --- (ELIMINADO) Lógica del Carrusel ---
+
+        // --- (NUEVO) Lógica de Compartir ---
+        function copyToClipboard(text) {
+            // Crear un input temporal
+            const tempInput = document.createElement('textarea');
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            
+            // Seleccionar y copiar
+            tempInput.select();
+            tempInput.setSelectionRange(0, 99999); // Para móviles
+            
+            let success = false;
+            try {
+                success = document.execCommand('copy');
+            } catch (err) {
+                console.error('Error al copiar (execCommand):', err);
+            }
+            
+            // Limpiar
+            document.body.removeChild(tempInput);
+            
+            if (success) {
+                // Mostrar confirmación
+                shareConfirm.classList.remove('hidden');
+                setTimeout(() => {
+                    shareConfirm.classList.add('hidden');
+                }, 2000);
+            } else {
+                // Fallback (raro)
+                alert('No se pudo copiar el enlace. Cópialo manually: ' + text);
+            }
+        }
+
+        shareBtn.addEventListener('click', () => {
+            if (!currentModelToPurchase || !currentModelToPurchase.id) return;
+            
+            // Construir la URL
+            const baseUrl = window.location.origin + window.location.pathname;
+            const shareUrl = `${baseUrl}?share_id=${currentModelToPurchase.id}`;
+            
+            // Copiar al portapapeles
+            copyToClipboard(shareUrl);
+        });
 
         // --- Lógica del Cuadro de Compra (Detalles) ---
 
