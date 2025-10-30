@@ -99,6 +99,9 @@
             <!-- Vista de Mis Pedidos (Visible por defecto) -->
             <div id="orders-view">
                 <h1 class="text-3xl font-bold text-gray-900 mb-6">Mis Pedidos</h1>
+                
+                <!-- (NUEVO) Mensaje de Cancelación -->
+                <div id="cancel-message" class="hidden mb-4 p-3 rounded-md text-sm"></div>
 
                 <!-- Spinner de Carga de Pedidos -->
                 <div id="orders-loading" class="flex justify-center items-center h-64">
@@ -152,9 +155,9 @@
             onSnapshot, 
             query,
             setLogLevel,
-            getDoc,      // (NUEVO)
-            updateDoc,   // (NUEVO)
-            deleteDoc    // (NUEVO)
+            updateDoc, // (NUEVO)
+            deleteDoc, // (NUEVO)
+            getDoc // (NUEVO)
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
@@ -188,6 +191,7 @@
         let userId = null;
         let currentUserEmail = null; 
         let currentUserCoins = 0;
+        let countdownInterval = null; // (NUEVO) Intervalo para la cuenta atrás
         
         // --- Elementos del DOM ---
         // Headers Escritorio
@@ -210,6 +214,7 @@
         // Pedidos
         const ordersList = document.getElementById('orders-list');
         const ordersLoading = document.getElementById('orders-loading');
+        const cancelMessage = document.getElementById('cancel-message'); // (NUEVO)
 
         // --- Lógica de Autenticación (Protección de Ruta) ---
 
@@ -229,7 +234,7 @@
                 // Comprobar si es admin para mostrar el enlace de admin
                 navAdminOrders.style.display = 'none';
                 mobileNavAdminOrders.style.display = 'none';
-                if (['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'].includes(user.email)) {
+                if (currentUserEmail === 'arielcapdevilagarcia@gmail.com' || currentUserEmail === 'cloenarvaez@gmail.com') { // (MODIFICADO)
                     navAdminOrders.style.display = 'inline-flex'; 
                     mobileNavAdminOrders.style.display = 'flex'; 
                 }
@@ -283,11 +288,69 @@
             onSnapshot(query(userOrdersRef), (snapshot) => {
                 renderOrders(snapshot.docs);
                 ordersLoading.style.display = 'none';
+                
+                // (NUEVO) Iniciar/reiniciar el intervalo de cuenta atrás
+                if (countdownInterval) clearInterval(countdownInterval);
+                countdownInterval = setInterval(updateAllCountdowns, 1000);
+
             }, (error) => {
                 console.error("Error en listener de pedidos:", error);
                 ordersLoading.innerHTML = '<p class="text-red-500">Error al cargar tus pedidos.</p>';
             });
         }
+
+        // --- (NUEVO) Lógica de Cuenta Atrás ---
+
+        function formatDuration(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            // (MODIFICADO) Formato más legible
+            let parts = [];
+            if (hours > 0) parts.push(`${hours}h`);
+            if (minutes > 0) parts.push(`${minutes}m`);
+            if (hours === 0 && minutes === 0) parts.push(`${seconds}s`); // Solo mostrar segundos si es menos de 1 min
+
+            if (parts.length === 0) return "0s"; // Caso de 0 segundos
+            
+            // Si hay horas y minutos, solo mostrar esos (ej. 1h 30m)
+            if (hours > 0 && minutes > 0) {
+                 return parts.slice(0, 2).join(' ');
+            }
+            // Si solo hay minutos, o solo horas (ej. 1h, 30m)
+            return parts.join(' ');
+        }
+
+        function updateAllCountdowns() {
+            const now = Date.now();
+            const timers = document.querySelectorAll('.countdown-timer');
+            
+            if (timers.length === 0) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+                return;
+            }
+
+            timers.forEach(timer => {
+                const eta = parseInt(timer.dataset.etaTimestamp, 10);
+                if (!eta) {
+                    timer.style.display = 'none';
+                    return;
+                }
+
+                const remainingSeconds = Math.floor((eta - now) / 1000);
+
+                if (remainingSeconds <= 0) {
+                    timer.style.display = 'none'; // Desaparece al terminar
+                    // Opcional: podrías recargar la lista de pedidos aquí si quieres
+                } else {
+                    timer.style.display = 'block'; // Asegurarse que es visible
+                    timer.textContent = `Quedan: ${formatDuration(remainingSeconds)}`;
+                }
+            });
+        }
+
 
         // --- Funciones de Renderizado ---
 
@@ -300,8 +363,9 @@
 
             const sortedDocs = docs.sort((a, b) => (b.data().createdAt?.seconds || 0) - (a.data().createdAt?.seconds || 0));
 
-            sortedDocs.forEach(doc => {
-                const order = doc.data();
+            sortedDocs.forEach(docSnap => {
+                const order = docSnap.data();
+                const orderId = docSnap.id;
                 
                 let statusClass = '';
                 switch (order.status) {
@@ -312,106 +376,131 @@
                 }
                 
                 // (ACTUALIZADO) Usar colorHex y colorName
-                const colorHex = order.colorHex || '#9ca3af'; 
-                const colorName = order.colorName || 'Color';
+                const colorHex = order.colorHex || order.color?.toLowerCase() || '#9ca3af'; // Fallback a color
+                const colorName = order.colorName || order.color || 'Color'; // Fallback a color
+
+                // (NUEVO) Lógica para botón de cancelar
+                const canCancel = order.status === 'Pendiente';
+                const cancelButtonHtml = `
+                    <button 
+                        class="cancel-order-btn mt-2 w-full sm:w-auto text-xs text-red-600 font-medium hover:text-red-800 disabled:text-gray-400" 
+                        data-order-id="${orderId}" 
+                        data-price-paid="${order.pricePaid}"
+                        ${!canCancel ? 'disabled' : ''}>
+                        ${canCancel ? 'Cancelar Pedido (Reembolso 80%)' : ''}
+                    </button>
+                `;
+                
+                // (NUEVO) Lógica para cuenta atrás
+                const etaTimestamp = order.etaTimestamp || 0;
+                const countdownHtml = `
+                    <p class="text-sm text-blue-700 font-medium countdown-timer mt-1" 
+                       data-eta-timestamp="${etaTimestamp}" 
+                       style="${etaTimestamp > Date.now() ? '' : 'display: none;'}">
+                       Calculando...
+                    </p>
+                `;
 
                 const orderItem = `
-                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row sm:items-center justify-between">
+                    <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row items-start justify-between">
                         <div class="flex items-center space-x-4 mb-3 sm:mb-0">
                             <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${colorHex};" title="${colorName}"></div>
-                            <div>
-                                <p class="text-lg font-semibold">${order.modelName}</p>
+                            <div class="min-w-0"> <!-- (NUEVO) Para truncar texto -->
+                                <p class="text-lg font-semibold truncate">${order.modelName}</p>
                                 <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
+                                <!-- (NUEVO) Añadir cuenta atrás aquí -->
+                                ${order.status === 'Imprimiendo' ? countdownHtml : ''}
                             </div>
                         </div>
-                        <!-- (MODIFICADO) Contenedor para status y botón de cancelar -->
-                        <div class="flex flex-col items-end space-y-2 mt-3 sm:mt-0">
+                        <div class="flex flex-col items-end flex-shrink-0"> <!-- (MODIFICADO) -->
                             <span class="text-sm font-medium rounded-full px-3 py-1 ${statusClass} self-start sm:self-auto">
                                 ${order.status}
                             </span>
-                            <!-- (NUEVO) Botón de Cancelar para Usuario (condicional) -->
-                            ${order.status === 'Pendiente' ? `
-                            <button class="user-cancel-btn text-xs font-medium text-red-600 hover:text-red-800"
-                                data-order-id="${doc.id}"
-                                data-price-paid="${order.pricePaid}"
-                                data-status="${order.status}">
-                                Cancelar (Reembolso 80%)
-                            </button>
-                            ` : ''}
+                            <!-- (NUEVO) Añadir botón de cancelar aquí -->
+                            ${cancelButtonHtml}
                         </div>
                     </div>
                 `;
                 ordersList.innerHTML += orderItem;
             });
 
-            // (NUEVO) Adjuntar listeners para los botones de cancelar
-            ordersList.querySelectorAll('.user-cancel-btn').forEach(button => {
-                button.removeEventListener('click', handleUserCancelOrder); // Prevenir duplicados
+            // (NUEVO) Adjuntar listeners a los botones de cancelar
+            ordersList.querySelectorAll('.cancel-order-btn').forEach(button => {
                 button.addEventListener('click', handleUserCancelOrder);
             });
         }
 
-        // (NUEVO) Manejar cancelación de pedido por Usuario
+        // --- (NUEVO) Lógica de Cancelación (Usuario) ---
+        
         async function handleUserCancelOrder(e) {
             const button = e.currentTarget;
-            const { orderId, pricePaid, status } = button.dataset;
+            const { orderId, pricePaid } = button.dataset;
 
-            if (status !== 'Pendiente') {
-                console.error("Intento de cancelar un pedido que no está pendiente.");
-                button.style.display = 'none'; // Ocultar botón si el estado cambió
+            if (!orderId || !pricePaid) return;
+
+            // (Mejorado) Añadimos un chequeo de doble click
+            if (!button.classList.contains('confirm-click')) {
+                button.textContent = '¿Seguro? Haz click de nuevo para confirmar';
+                button.classList.add('confirm-click', 'text-red-800');
+                setTimeout(() => {
+                    if (button.classList.contains('confirm-click')) {
+                        button.classList.remove('confirm-click', 'text-red-800');
+                        button.textContent = 'Cancelar Pedido (Reembolso 80%)';
+                    }
+                }, 3000); // Resetear tras 3 segundos
                 return;
             }
-            
-            // --- NO USAR CONFIRM ---
-            // if (!confirm("¿Seguro que quieres cancelar este pedido? Se te reembolsará el 80% de las monedas.")) {
-            //     return;
-            // }
-            // TODO: Reemplazar esto con un modal de confirmación personalizado si se desea.
-            // Por ahora, procederemos directamente para mantener la funcionalidad.
+
 
             button.disabled = true;
-            button.textContent = "Cancelando...";
-
-            const refundAmount = Math.floor(parseFloat(pricePaid) * 0.8);
+            button.textContent = 'Cancelando...';
+            cancelMessage.textContent = '';
+            cancelMessage.classList.add('hidden');
 
             try {
-                // 1. Get user profile to update coins
-                const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
-                const profileSnap = await getDoc(userProfileRef);
-                
-                if (!profileSnap.exists()) {
-                    throw new Error("No se pudo encontrar el perfil de usuario para el reembolso.");
-                }
-                
-                const currentCoins = profileSnap.data().coins || 0;
-                const newTotal = currentCoins + refundAmount;
-                
-                // 2. Update coins
-                await updateDoc(userProfileRef, { coins: newTotal });
-
-                // 3. Delete public order
+                // 1. Verificar el estado del pedido (seguridad)
                 const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', orderId);
-                const adminOrderSnap = await getDoc(adminOrderRef); // Comprobar si existe
-                if (adminOrderSnap.exists()) {
-                    await deleteDoc(adminOrderRef);
-                } else {
-                    console.warn(`No se encontró el pedido público ${orderId} para borrar.`);
+                const adminOrderSnap = await getDoc(adminOrderRef);
+                
+                if (!adminOrderSnap.exists()) throw new Error("El pedido ya no existe.");
+                
+                const orderData = adminOrderSnap.data();
+                if (orderData.status !== 'Pendiente') {
+                    throw new Error("Ya no se puede cancelar el pedido, está siendo procesado.");
                 }
 
+                // 2. Calcular reembolso (80%)
+                const refundAmount = Math.floor(parseInt(pricePaid, 10) * 0.80);
 
-                // 4. Delete private order
+                // 3. Reembolsar al usuario
+                const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
+                const userProfileSnap = await getDoc(userProfileRef);
+                if (!userProfileSnap.exists()) throw new Error("No se encontró tu perfil de usuario.");
+                
+                const newCoinBalance = (userProfileSnap.data().coins || 0) + refundAmount;
+                await updateDoc(userProfileRef, { coins: newCoinBalance });
+
+                // 4. Borrar el pedido (ambas copias)
+                await deleteDoc(adminOrderRef); // Copia pública
+
                 const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
-                // No es necesario comprobar, ya que el listener se basa en esta colección
-                await deleteDoc(userOrderRef);
-                
-                console.log(`Pedido ${orderId} cancelado. Reembolsadas ${refundAmount} monedas.`);
-                // onSnapshot se encargará de actualizar la UI
-                
+                await deleteDoc(userOrderRef); // Copia privada
+
+                // 5. Mostrar mensaje de éxito
+                cancelMessage.textContent = `¡Pedido cancelado! Se han reembolsado ${refundAmount} monedas (80%) a tu cuenta.`;
+                cancelMessage.className = 'mb-4 p-3 rounded-md text-sm bg-green-100 text-green-800';
+                cancelMessage.classList.remove('hidden');
+
+                // onSnapshot se encargará de refrescar la lista
+
             } catch (error) {
-                console.error("Error al cancelar pedido (usuario):", error);
-                button.disabled = false;
-                button.textContent = "Error, reintentar";
-                // (Opcional: mostrar error en algún sitio)
+                console.error("Error al cancelar (usuario):", error);
+                cancelMessage.textContent = `Error al cancelar: ${error.message}`;
+                cancelMessage.className = 'mb-4 p-3 rounded-md text-sm bg-red-100 text-red-800';
+                cancelMessage.classList.remove('hidden');
+                button.disabled = false; // Reactivar botón si falla
+                button.classList.remove('confirm-click', 'text-red-800');
+                button.textContent = 'Cancelar Pedido (Reembolso 80%)';
             }
         }
     </script>
