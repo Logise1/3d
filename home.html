@@ -775,7 +775,7 @@
             }
         }
         
-        // Cargar desde el Worker (para Búsqueda - Sin cambios)
+        // Cargar desde el Worker (para Búsqueda - ¡CORREGIDO!)
         async function fetchSearchModels(searchTerm) {
             storeLoading.style.display = 'flex';
             modelsGrid.innerHTML = '';
@@ -794,7 +794,8 @@
                     throw new Error("La respuesta de la API no es un JSON válido.");
                 }); 
                 
-                const thingiverseModels = searchResults.hits || [];
+                // (FIX) La API devuelve un array directamente, no un objeto .hits
+                const thingiverseModels = searchResults || [];
                 
                 const models = thingiverseModels.map(thing => {
                     const rawImageUrl = thing.thumbnail;
@@ -1566,3 +1567,4 @@
     </script>
 </body>
 </html>
+
