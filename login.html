@@ -129,15 +129,15 @@
 
     <!-- Script de Firebase -->
     <script type="module">
-        // Importar funciones de Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // (CORREGIDO) Importar getApps y getApp
+        import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
             onAuthStateChanged,
             createUserWithEmailAndPassword,
             signInWithEmailAndPassword,
-            signInWithCustomToken, // (NUEVO) Añadir
-            signInAnonymously // (NUEVO) Añadir
+            signInWithCustomToken, 
+            signInAnonymously 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
@@ -148,35 +148,48 @@
             setLogLevel
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- Configuración de Firebase ---
-        // (MODIFICADO) Usar variables globales
+        // --- (CORREGIDO) Configuración de Firebase ---
         let firebaseConfig;
         try {
-            // Intentar parsear la configuración global
+            // Esto fallará localmente (ReferenceError) y activará el catch
             firebaseConfig = JSON.parse(__firebase_config);
+            console.log("Usando config global (__firebase_config)");
         } catch (e) {
-            console.error("Error parsing Firebase config:", e);
-            // Configuración de fallback (no debería usarse en producción)
+            console.warn("ADVERTENCIA: __firebase_config no está definida. Usando config local de fallback. Esto es normal si estás probando localmente.");
+            // Esta es la configuración de fallback para pruebas locales
             firebaseConfig = {
               apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
               authDomain: "dprinting-9b264.firebaseapp.com",
               projectId: "dprinting-9b264",
+              storageBucket: "dprinting-9b264.firebasestorage.app",
+              messagingSenderId: "647333546063",
+              appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+              measurementId: "G-FWKS2HB1SE"
             };
         }
         
-        // (¡¡¡CORREGIDO!!!) Usar la variable global __app_id
+        // Usar la variable global __app_id si existe, si no, un fallback
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
-        // Inicializar Firebase
+        // (CORREGIDO) Inicializar Firebase
         let app, db, auth;
         try {
-            app = initializeApp(firebaseConfig);
+            // Comprobar si la app ya existe (previene error de hot-reload)
+            if (getApps().length === 0) {
+                app = initializeApp(firebaseConfig);
+                console.log("Firebase inicializado (nueva app).");
+            } else {
+                app = getApp(); // Usar la app existente
+                console.log("Usando app de Firebase existente.");
+            }
+            
             db = getFirestore(app);
             auth = getAuth(app);
             setLogLevel('Debug');
-            console.log("Firebase inicializado correctamente.");
+            
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
+            // Si esto falla, 'auth' será undefined, causando el Error 3.
         }
 
         // --- Variables de Estado ---
@@ -195,67 +208,63 @@
 
         // --- Lógica de Autenticación ---
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // Usuario está conectado
-                console.log("Usuario conectado:", user.uid);
-                
-                // (NUEVO) Lógica para redirigir si se guardó un item
-                const redirectId = sessionStorage.getItem('redirect_store_id');
-                sessionStorage.removeItem('redirect_store_id'); // Limpiar
-                
-                if (isNewUser) {
-                    // El perfil ya se creó. Solo mostrar el modal.
-                    welcomeModal.classList.remove('hidden'); // Mostrar modal de bienvenida
-                    isNewUser = false; // Resetear el flag
-                } else if (redirectId) {
-                    // Si venimos de un enlace compartido, redirigir a store.html
-                    console.log("Redirigiendo a item compartido:", redirectId);
-                    window.location.href = `store.html?id=${redirectId}`;
-                } else {
-                    // Si es un usuario existente, simplemente redirigir a home
-                    window.location.href = 'home.html';
-                }
-            } else {
-                // Usuario está desconectado
-                console.log("Usuario desconectado. Intentando auth token...");
-                // (NUEVO) Intentar login con token si existe
-                try {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        console.log("Intentando signInWithCustomToken...");
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                        // onAuthStateChanged se volverá a disparar con el usuario
+        // (CORREGIDO) Comprobar si 'auth' existe antes de llamarlo
+        if (auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (user) {
+                    // Usuario está conectado
+                    console.log("Usuario conectado:", user.uid);
+                    
+                    const redirectId = sessionStorage.getItem('redirect_store_id');
+                    sessionStorage.removeItem('redirect_store_id'); // Limpiar
+                    
+                    if (isNewUser) {
+                        welcomeModal.classList.remove('hidden'); 
+                        isNewUser = false; 
+                    } else if (redirectId) {
+                        console.log("Redirigiendo a item compartido:", redirectId);
+                        window.location.href = `store.html?id=${redirectId}`;
                     } else {
-                        console.log("No hay token, intentando signInAnonymously...");
-                        await signInAnonymously(auth);
-                        // onAuthStateChanged se volverá a disparar con usuario anónimo
-                        // (Nota: Tu flujo actual redirige a home, un anónimo también lo hará)
+                        window.location.href = 'home.html';
                     }
-                } catch (authError) {
-                    console.error("Error durante el login automático (token/anónimo):", authError);
+                } else {
+                    // Usuario está desconectado
+                    console.log("Usuario desconectado. Intentando auth token...");
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            console.log("Intentando signInWithCustomToken...");
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            console.log("No hay token, intentando signInAnonymously...");
+                            await signInAnonymously(auth);
+                        }
+                    } catch (authError) {
+                        console.error("Error durante el login automático (token/anónimo):", authError);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            console.error("La autenticación de Firebase (auth) no se pudo inicializar. La app no funcionará.");
+            authMessage.textContent = "Error crítico al conectar con Firebase. Refresca la página.";
+        }
 
         // (MODIFICADO) Aceptar todos los datos
         async function setupNewUserProfile(userId, email, name, phone) {
             console.log("Creando perfil para nuevo usuario...");
             try {
-                // (FIX) Ruta privada explícita
-                // Esta ruta es correcta: /artifacts/{appId}/users/{userId}/profile/{documentId}
+                // Ruta privada
                 const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
                 await setDoc(userProfileRef, { 
                     userId: userId,
                     email: email, 
-                    realName: name, // Guardar
-                    phone: phone,   // Guardar
-                    coins: 0, // Empezar con 0 monedas
+                    realName: name, 
+                    phone: phone,   
+                    coins: 0, 
                     createdAt: serverTimestamp()
                 });
                 console.log("Perfil privado creado.");
 
-                // (FIX) Ruta pública explícita
-                // Esta ruta es correcta: /artifacts/{appId}/public/data/{collectionName}/{documentId}
+                // Ruta pública
                 const userLookupRef = doc(db, 'artifacts', appId, 'public', 'data', 'user-lookup', email);
                 await setDoc(userLookupRef, { userId: userId });
                 console.log("Perfil y public user lookup created.");
@@ -267,6 +276,7 @@
         // Manejar envío de formulario de Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!auth) return; // No hacer nada si auth falló
             isNewUser = false; 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -284,13 +294,13 @@
         // Manejar envío de formulario de Registro (MODIFICADO)
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!auth) return; // No hacer nada si auth falló
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const name = document.getElementById('register-name').value;
             const phone = document.getElementById('register-phone').value;
             authMessage.textContent = ''; 
 
-            // Validación
             if (!name || !phone) {
                 authMessage.textContent = 'El nombre real y el teléfono son obligatorios.';
                 return;
@@ -300,19 +310,16 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
-                // ¡¡¡FIX!!! Llamar a setupNewUserProfile AQUÍ, pasando los datos.
                 await setupNewUserProfile(user.uid, email, name, phone);
                 
-                // Marcar como usuario nuevo DESPUÉS de que todo haya funcionado
                 isNewUser = true; 
                 
-                // onAuthStateChanged se disparará automáticamente ahora
-                // y verá el flag isNewUser, mostrando el modal.
+                // onAuthStateChanged se disparará
 
             } catch (error) {
                 console.error("Error de registro:", error.code);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
-                isNewUser = false; // Resetear en caso de error
+                isNewUser = false; 
             }
         });
 
@@ -335,14 +342,12 @@
         closeWelcomeModalBtn.addEventListener('click', () => {
             welcomeModal.classList.add('hidden');
             
-            // (NUEVO) Comprobar si hay un item compartido guardado
             const redirectId = sessionStorage.getItem('redirect_store_id');
-            sessionStorage.removeItem('redirect_store_id'); // Limpiar
+            sessionStorage.removeItem('redirect_store_id'); 
             
             if (redirectId) {
                 window.location.href = `store.html?id=${redirectId}`;
             } else {
-                // Después de cerrar el modal, redirigir a home
                 window.location.href = 'home.html';
             }
         });
