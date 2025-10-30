@@ -72,6 +72,15 @@
             background-color: #10B981; /* green-500 */
             border-color: #059669; /* green-600 */
         }
+        
+        /* (NUEVO) Estilos para el Carrusel */
+        #details-carousel-wrapper {
+            /* width se ajustará por JS (o no, si usamos translate) */
+            transition: transform 0.3s ease-in-out;
+        }
+        .carousel-dot-btn.active {
+            background-color: white;
+        }
     </style>
 
 </head>
@@ -195,9 +204,39 @@
                 <div class="bg-white rounded-lg shadow-xl overflow-hidden mt-2">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-0">
                         
-                        <!-- Columna de Imagen (Col 1) -->
-                        <div class="lg:col-span-2 p-6 flex justify-center items-center bg-gray-50">
-                            <img id="details-img" src="https://placehold.co/800x600/e2e8f0/64748b?text=Cargando..." alt="Modelo 3D" class="max-w-full max-h-[70vh] h-auto w-auto object-contain rounded-lg">
+                        <!-- (COLUMNA MODIFICADA) Columna de Imagen (Col 1) -->
+                        <div class="lg:col-span-2 p-6 flex justify-center items-center bg-gray-50 relative">
+                            
+                            <!-- (NUEVO) Contenedor del Carrusel -->
+                            <div id="details-carousel-container" class="w-full h-[70vh] max-h-[600px] relative overflow-hidden rounded-lg bg-gray-200">
+                                <!-- Wrapper que se moverá -->
+                                <div id="details-carousel-wrapper" class="flex h-full transition-transform duration-300 ease-in-out">
+                                    <!-- Las imágenes se insertarán aquí por JS -->
+                                    <!-- Loader inicial -->
+                                    <div class="w-full h-full flex-shrink-0 flex items-center justify-center">
+                                        <div class="loader !w-12 !h-12"></div>
+                                    </div>
+                                </div>
+
+                                <!-- (NUEVO) Controles Prev/Next -->
+                                <div id="details-carousel-controls" class="hidden">
+                                    <button id="carousel-prev-btn" class="absolute top-1/2 left-2 -translate-y-1/2 bg-white/50 hover:bg-white/80 rounded-full p-2 text-gray-800 shadow-md transition-all z-10">
+                                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg>
+                                    </button>
+                                    <button id="carousel-next-btn" class="absolute top-1/2 right-2 -translate-y-1/2 bg-white/50 hover:bg-white/80 rounded-full p-2 text-gray-800 shadow-md transition-all z-10">
+                                        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                    </button>
+                                </div>
+
+                                <!-- (NUEVO) Indicadores de Puntos -->
+                                <div id="details-carousel-dots" class="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2 z-10">
+                                    <!-- Los puntos se insertarán aquí por JS -->
+                                </div>
+                            </div>
+
+                            <!-- (ELIMINADO)
+                            <img id="details-img" src="https...
+                            -->
                         </div>
                         
                         <!-- Columna de Compra (Col 2) -->
@@ -515,7 +554,7 @@
         
         // Detalles (Diseño Amazon)
         const backToStoreBtn = document.getElementById('back-to-store-btn');
-        const detailsImg = document.getElementById('details-img');
+        // (ELIMINADO) const detailsImg = document.getElementById('details-img');
         const detailsName = document.getElementById('details-name');
         const detailsDesc = document.getElementById('details-desc');
         const detailsPriceContainer = document.getElementById('details-price-container');
@@ -530,6 +569,16 @@
         const priceSummaryTotal = document.getElementById('price-summary-total');
         const openPurchaseModalBtn = document.getElementById('open-purchase-modal-btn');
 
+        // (NUEVO) Elementos del Carrusel
+        const carouselContainer = document.getElementById('details-carousel-container');
+        const carouselWrapper = document.getElementById('details-carousel-wrapper');
+        const carouselControls = document.getElementById('details-carousel-controls');
+        const carouselDots = document.getElementById('details-carousel-dots');
+        const prevBtn = document.getElementById('carousel-prev-btn');
+        const nextBtn = document.getElementById('carousel-next-btn');
+        
+        let currentSlideIndex = 0;
+        let totalSlides = 0;
 
         // Modal de Confirmación
         const purchaseModal = document.getElementById('purchase-modal');
@@ -867,6 +916,7 @@
 
         // --- Lógica de la Vista de Detalles (Amazon-Style) ---
 
+        // (MODIFICADO)
         async function openDetailsView(e) {
             const button = e.target.closest('button');
             const { id, name, img, desc } = button.dataset;
@@ -878,7 +928,6 @@
             window.scrollTo(0, 0); // Subir al inicio
 
             // Resetear UI de Detalles
-            detailsImg.src = img;
             detailsName.textContent = name;
             detailsDesc.textContent = desc;
             detailsPriceSpinner.style.display = 'block';
@@ -891,45 +940,154 @@
             priceSummaryBase.textContent = '...';
             priceSummaryFee.textContent = '+ 0 monedas';
             priceSummaryTotal.textContent = '...';
+            
+            // (NUEVO) 2. Resetear carrusel y mostrar loader
+            carouselWrapper.innerHTML = `<div class="w-full h-full flex-shrink-0 flex items-center justify-center"><div class="loader !w-12 !h-12"></div></div>`;
+            carouselDots.innerHTML = '';
+            carouselControls.classList.add('hidden');
+            currentSlideIndex = 0;
+            totalSlides = 0;
 
-            // 2. Llamar al Worker para calcular el precio
+            // (NUEVO) 3. Fetch en Paralelo (Imágenes y Precio)
+            const detailsEndpoint = `${workerUrl}/details?id=${id}`;
             const priceEndpoint = `${workerUrl}/calculate-price?id=${id}&name=${encodeURIComponent(name)}&imageUrl=${encodeURIComponent(img)}`;
             
-            try {
-                const response = await fetch(priceEndpoint);
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Error del servidor');
-                }
-                
-                const data = await response.json();
-                
-                currentCalculatedPrice = data.basePrice; 
+            let allImages = [img]; // Default image
 
-                detailsPriceText.textContent = currentCalculatedPrice;
-                const priceInEuros = (currentCalculatedPrice / 250).toFixed(2);
-                detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
-                
-                updatePriceSummary();
+            // Promise for Images
+            const imagesPromise = fetch(detailsEndpoint)
+                .then(res => {
+                    if (res.ok) return res.json();
+                    throw new Error('No se pudieron cargar detalles de imágenes');
+                })
+                .then(thingData => {
+                    if (thingData.images && Array.isArray(thingData.images)) {
+                        // Obtener URLs de tamaño 'featured_large'
+                        const imageUrls = thingData.images
+                            .map(imgObj => imgObj.sizes?.find(s => s.type === 'featured_large')?.url)
+                            .filter(url => !!url); // Filtrar nulos
+                        // Usar Set para evitar duplicados, poniendo la imagen principal primero
+                        allImages = [...new Set([img, ...imageUrls])];
+                    }
+                })
+                .catch(err => {
+                    console.warn("Error al cargar imágenes (se usará solo la principal):", err.message);
+                    // allImages se queda como [img]
+                });
 
-            } catch (error) {
-                console.error("Error al calcular el precio con el Worker:", error);
-                
-                currentCalculatedPrice = 150; // Fallback
-                
-                detailsPriceText.textContent = currentCalculatedPrice;
-                const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); // Calcular euros para fallback
-                detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
-                detailsPriceError.textContent = 'Error IA. Usando precio base.';
-                
-                updatePriceSummary();
-            
-            } finally {
-                detailsPriceSpinner.style.display = 'none';
-                detailsPriceCurrency.classList.remove('hidden');
-                openPurchaseModalBtn.disabled = false;
-            }
+            // Promise for Price
+            const pricePromise = fetch(priceEndpoint)
+                .then(res => {
+                    if (res.ok) return res.json();
+                    // Si hay error, intentar leer el JSON del error
+                    return res.json().then(errData => { throw new Error(errData.error || 'Error del servidor al calcular precio') });
+                })
+                .then(data => {
+                    currentCalculatedPrice = data.basePrice; 
+                    detailsPriceText.textContent = currentCalculatedPrice;
+                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2);
+                    detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
+                })
+                .catch(error => {
+                    console.error("Error al calcular el precio con el Worker:", error.message);
+                    currentCalculatedPrice = 150; // Fallback
+                    detailsPriceText.textContent = currentCalculatedPrice;
+                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); // Calcular euros para fallback
+                    detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
+                    detailsPriceError.textContent = 'Error IA. Usando precio base.';
+                });
+
+            // (NUEVO) 4. Esperar a que ambas terminen
+            await Promise.all([imagesPromise, pricePromise]);
+
+            // (NUEVO) 5. Construir UI con los datos
+            buildCarousel(allImages); // Construir carrusel con las imágenes
+            updatePriceSummary(); // Actualizar precio con el precio base
+
+            // 6. Finalizar UI
+            detailsPriceSpinner.style.display = 'none';
+            detailsPriceCurrency.classList.remove('hidden');
+            openPurchaseModalBtn.disabled = false;
         }
+
+        // --- (NUEVO) Lógica del Carrusel ---
+
+        function buildCarousel(images) {
+            carouselWrapper.innerHTML = '';
+            carouselDots.innerHTML = '';
+            totalSlides = images.length;
+            currentSlideIndex = 0;
+
+            if (totalSlides === 0) {
+                carouselWrapper.innerHTML = `<div class="w-full h-full flex-shrink-0 flex items-center justify-center text-gray-600">Sin imagen</div>`;
+                return;
+            }
+
+            images.forEach((imageUrl, index) => {
+                // Añadir slide
+                carouselWrapper.innerHTML += `
+                    <div class="w-full h-full flex-shrink-0 flex items-center justify-center p-4">
+                        <img src="${imageUrl}" class="max-w-full max-h-full h-auto w-auto object-contain rounded-md" onerror="this.src='https://placehold.co/800x600/e2e8f0/64748b?text=Error+al+cargar'">
+                    </div>
+                `;
+                
+                // Añadir dot
+                carouselDots.innerHTML += `
+                    <button class="carousel-dot-btn w-3 h-3 bg-white/50 hover:bg-white/80 rounded-full" data-index="${index}"></button>
+                `;
+            });
+
+            // Mostrar controles solo si hay más de 1 imagen
+            if (totalSlides > 1) {
+                carouselControls.classList.remove('hidden');
+            } else {
+                carouselControls.classList.add('hidden');
+            }
+            
+            // Actualizar UI del carrusel (mover a la slide 0, marcar dot 0)
+            updateCarouselUI();
+        }
+        
+        function goToSlide(index) {
+            currentSlideIndex = index;
+            // Loop
+            if (currentSlideIndex < 0) {
+                currentSlideIndex = totalSlides - 1;
+            } else if (currentSlideIndex >= totalSlides) {
+                currentSlideIndex = 0;
+            }
+            updateCarouselUI();
+        }
+
+        function updateCarouselUI() {
+            if (!carouselWrapper) return;
+            // Mover el wrapper
+            carouselWrapper.style.transform = \`translateX(-${currentSlideIndex * 100}%)\`;
+            
+            // Actualizar dots
+            document.querySelectorAll('.carousel-dot-btn').forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentSlideIndex);
+                dot.classList.toggle('bg-white', index === currentSlideIndex);
+                dot.classList.toggle('bg-white/50', index !== currentSlideIndex);
+            });
+        }
+        
+        // Listeners para botones Prev/Next
+        prevBtn.addEventListener('click', () => {
+            goToSlide(currentSlideIndex - 1);
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            goToSlide(currentSlideIndex + 1);
+        });
+
+        // Listener para los dots (delegación de eventos)
+        carouselDots.addEventListener('click', (e) => {
+            if (e.target.classList.contains('carousel-dot-btn')) {
+                const index = parseInt(e.target.dataset.index, 10);
+                goToSlide(index);
+            }
+        });
 
         // --- Lógica del Cuadro de Compra (Detalles) ---
 
@@ -1162,12 +1320,13 @@
                 const isKeychain = order.modelId === 'CUSTOM_KEYCHAIN';
                 const modelTitle = isKeychain ? `${order.modelName} ("${order.customText || ''}")` : order.modelName; // Fallback para customText
                 const modelIdText = isKeychain ? (order.customText || 'Texto no disponible') : `ID: ${order.modelId}`;
-                const orderColor = order.color || 'gray'; // Fallback para color
+                const orderColor = order.colorName || order.color || 'gray'; // (MODIFICADO) Priorizar colorName
+                const colorHex = order.colorHex || '#9ca3af'; // (MODIFICADO) Usar hex
 
                 const cardHTML = `
                     <div class="admin-order-card bg-white p-4 rounded-lg shadow flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0 sm:space-x-4">
                         <div class="flex items-center space-x-3 flex-grow min-w-0">
-                             <div class="w-8 h-8 rounded-full border flex-shrink-0" style="background-color: ${orderColor.toLowerCase()};" title="${orderColor}"></div>
+                             <div class="w-8 h-8 rounded-full border flex-shrink-0" style="background-color: ${colorHex};" title="${orderColor}"></div>
                             <div class="min-w-0">
                                 <p class="font-bold text-gray-900 truncate" title="${modelTitle}">${modelTitle}</p>
                                 <p class="text-xs text-gray-600 truncate">${order.userEmail || 'Email no disponible'}</p>
