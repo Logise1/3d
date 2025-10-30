@@ -765,9 +765,7 @@
                 const models = thingiverseModels.map(thing => {
                     // (FIX CALIDAD)
                     // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
-                const thingiverseModels = searchResults || [];
-                
-                const models = thingiverseModels.map(thing => {
+                    
                     // (FIX CALIDAD)
                     // (MODIFICADO) Usar 'preview_image' que es la de la tarjeta, es mejor que 'thumbnail'
                     const highResImgUrl = thing.preview_image || (thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '');
