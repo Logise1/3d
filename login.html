@@ -135,7 +135,9 @@
             getAuth, 
             onAuthStateChanged,
             createUserWithEmailAndPassword,
-            signInWithEmailAndPassword
+            signInWithEmailAndPassword,
+            signInWithCustomToken, // (NUEVO) Añadir
+            signInAnonymously // (NUEVO) Añadir
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
@@ -147,17 +149,23 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
-        const firebaseConfig = {
-          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
-          authDomain: "dprinting-9b264.firebaseapp.com",
-          projectId: "dprinting-9b264",
-          storageBucket: "dprinting-9b264.firebasestorage.app",
-          messagingSenderId: "647333546063",
-          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
-          measurementId: "G-FWKS2HB1SE"
-        };
+        // (MODIFICADO) Usar variables globales
+        let firebaseConfig;
+        try {
+            // Intentar parsear la configuración global
+            firebaseConfig = JSON.parse(__firebase_config);
+        } catch (e) {
+            console.error("Error parsing Firebase config:", e);
+            // Configuración de fallback (no debería usarse en producción)
+            firebaseConfig = {
+              apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+              authDomain: "dprinting-9b264.firebaseapp.com",
+              projectId: "dprinting-9b264",
+            };
+        }
         
-        const appId = firebaseConfig.projectId || 'default-app-id';
+        // (¡¡¡CORREGIDO!!!) Usar la variable global __app_id
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
         // Inicializar Firebase
         let app, db, auth;
@@ -192,19 +200,40 @@
                 // Usuario está conectado
                 console.log("Usuario conectado:", user.uid);
                 
-                // (MODIFICADO) Esta función ya no crea el perfil, solo redirige.
-                // La creación del perfil se hace en el listener de 'submit'.
+                // (NUEVO) Lógica para redirigir si se guardó un item
+                const redirectId = sessionStorage.getItem('redirect_store_id');
+                sessionStorage.removeItem('redirect_store_id'); // Limpiar
+                
                 if (isNewUser) {
                     // El perfil ya se creó. Solo mostrar el modal.
                     welcomeModal.classList.remove('hidden'); // Mostrar modal de bienvenida
                     isNewUser = false; // Resetear el flag
+                } else if (redirectId) {
+                    // Si venimos de un enlace compartido, redirigir a store.html
+                    console.log("Redirigiendo a item compartido:", redirectId);
+                    window.location.href = `store.html?id=${redirectId}`;
                 } else {
-                    // Si es un usuario existente, simplemente redirigir
+                    // Si es un usuario existente, simplemente redirigir a home
                     window.location.href = 'home.html';
                 }
             } else {
                 // Usuario está desconectado
-                console.log("Usuario desconectado.");
+                console.log("Usuario desconectado. Intentando auth token...");
+                // (NUEVO) Intentar login con token si existe
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        console.log("Intentando signInWithCustomToken...");
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        // onAuthStateChanged se volverá a disparar con el usuario
+                    } else {
+                        console.log("No hay token, intentando signInAnonymously...");
+                        await signInAnonymously(auth);
+                        // onAuthStateChanged se volverá a disparar con usuario anónimo
+                        // (Nota: Tu flujo actual redirige a home, un anónimo también lo hará)
+                    }
+                } catch (authError) {
+                    console.error("Error durante el login automático (token/anónimo):", authError);
+                }
             }
         });
 
@@ -213,6 +242,7 @@
             console.log("Creando perfil para nuevo usuario...");
             try {
                 // (FIX) Ruta privada explícita
+                // Esta ruta es correcta: /artifacts/{appId}/users/{userId}/profile/{documentId}
                 const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
                 await setDoc(userProfileRef, { 
                     userId: userId,
@@ -222,8 +252,10 @@
                     coins: 0, // Empezar con 0 monedas
                     createdAt: serverTimestamp()
                 });
+                console.log("Perfil privado creado.");
 
                 // (FIX) Ruta pública explícita
+                // Esta ruta es correcta: /artifacts/{appId}/public/data/{collectionName}/{documentId}
                 const userLookupRef = doc(db, 'artifacts', appId, 'public', 'data', 'user-lookup', email);
                 await setDoc(userLookupRef, { userId: userId });
                 console.log("Perfil y public user lookup created.");
@@ -252,7 +284,6 @@
         // Manejar envío de formulario de Registro (MODIFICADO)
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            // isNewUser = true; // (MOVIDO) Mover el flag al try/catch
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const name = document.getElementById('register-name').value;
@@ -303,8 +334,17 @@
         // --- Modal de Bienvenida ---
         closeWelcomeModalBtn.addEventListener('click', () => {
             welcomeModal.classList.add('hidden');
-            // Después de cerrar el modal, redirigir a home
-            window.location.href = 'home.html';
+            
+            // (NUEVO) Comprobar si hay un item compartido guardado
+            const redirectId = sessionStorage.getItem('redirect_store_id');
+            sessionStorage.removeItem('redirect_store_id'); // Limpiar
+            
+            if (redirectId) {
+                window.location.href = `store.html?id=${redirectId}`;
+            } else {
+                // Después de cerrar el modal, redirigir a home
+                window.location.href = 'home.html';
+            }
         });
 
         // Función para traducir errores de Firebase
