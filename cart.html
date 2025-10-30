@@ -229,7 +229,7 @@
                 // Comprobar si es admin para mostrar el enlace de admin
                 navAdminOrders.style.display = 'none';
                 mobileNavAdminOrders.style.display = 'none';
-                if (currentUserEmail === 'arielcapdevilagarcia@gmail.com') {
+                if (['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'].includes(user.email)) {
                     navAdminOrders.style.display = 'inline-flex'; 
                     mobileNavAdminOrders.style.display = 'flex'; 
                 }
