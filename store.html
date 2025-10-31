@@ -160,8 +160,6 @@
         <!-- Contenido Principal -->
         <main class="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-8">
 
-            <!-- (ELIMINADA) Vista de la Tienda -->
-
             <!-- Vista de Detalles del Producto (Visible por defecto) -->
             <div id="details-view" class="">
                 <a href="home.html" id="back-to-store-btn" class="mb-4 inline-flex items-center text-sm font-medium text-gray-600 hover:text-gray-900">
@@ -175,9 +173,7 @@
                         
                         <!-- Columna de Imagen (Col 1) -->
                         <div class="lg:col-span-2 p-6 flex justify-center items-center bg-gray-50 relative">
-                            
                              <img id="details-img" src="https://placehold.co/800x600/e2e8f0/64748b?text=Cargando..." alt="Modelo 3D" class="max-w-full max-h-[70vh] h-auto w-auto object-contain rounded-lg">
-
                         </div>
                         
                         <!-- Columna de Compra (Col 2) -->
@@ -260,10 +256,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- (ELIMINADO) Vista de Pedidos del Admin -->
-            
-            <!-- (ELIMINADO) Panel de Administración -->
 
         </main>
     </div>
@@ -369,22 +361,26 @@
         import { 
             getAuth, 
             onAuthStateChanged,
-            signOut
+            signOut,
+            getIdToken // ¡NUEVO! Necesario para obtener el token
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { 
             getFirestore, 
             doc, 
-            getDoc, 
-            setDoc, 
-            updateDoc, 
-            collection, 
-            addDoc,
+            // ¡MODIFICADO! Se eliminan las funciones de escritura del cliente
+            // getDoc, 
+            // setDoc, 
+            // updateDoc, 
+            // collection, 
+            // addDoc,
             onSnapshot, 
-            query,
-            serverTimestamp,
+            // query,
+            // serverTimestamp,
             setLogLevel,
-            deleteDoc 
+            // deleteDoc 
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // ¡ELIMINADO! getFunctions y httpsCallable ya no se usan aquí.
 
         // --- Configuración de Firebase ---
         const firebaseConfig = {
@@ -407,13 +403,14 @@
         const appId = firebaseConfig.projectId || 'default-app-id';
 
         // Inicializar Firebase
-        let app, db, auth;
+        let app, db, auth; 
+        
         try {
             app = initializeApp(firebaseConfig);
             db = getFirestore(app);
             auth = getAuth(app);
             setLogLevel('Debug');
-            console.log("Firebase inicializado en store.html");
+            console.log("Firebase inicializado en store.html (modo cliente ligero)");
         } catch (error) {
             console.error("Error al inicializar Firebase:", error);
             document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
@@ -423,43 +420,20 @@
         // --- Variables de Estado de la App ---
         let userId = null;
         let userEmail = null;
-        // (ELIMINADO) isAdmin, adminOrdersUnsubscribe
         let currentUserCoins = 0;
         let currentModelToPurchase = null;
         let currentCalculatedPrice = 0; 
         let currentPurchaseDetails = {}; 
         
-        // --- Elementos del DOM ---
-        // Headers Escritorio
+        // --- Elementos del DOM (sin cambios) ---
         const authStatus = document.getElementById('auth-status');
         const userCoinsDisplay = document.getElementById('user-coins');
         const logoutBtn = document.getElementById('logout-btn');
-        
-        // Headers Móvil
         const authStatusMobile = document.getElementById('auth-status-mobile');
         const userCoinsMobile = document.getElementById('user-coins-mobile');
         const logoutBtnMobile = document.getElementById('logout-btn-mobile');
-
-        // Contenedor
         const appContainer = document.getElementById('app-container');
-
-        // Navegación (Solo para marcar, no para vistas)
-        // const navStore = document.getElementById('nav-store');
-        // const navOrders = document.getElementById('nav-orders');
-        // const navPersonalize = document.getElementById('nav-personalize'); 
-        // const navAdminOrders = document.getElementById('nav-admin-orders');
-        // const mobileNavOrders = document.getElementById('mobile-nav-orders');
-        // const mobileNavStore = document.getElementById('mobile-nav-store');
-        // const mobileNavPersonalize = document.getElementById('mobile-nav-personalize'); 
-        // const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
-
-        // Vistas
-        // (ELIMINADO) storeView, adminOrdersView
         const detailsView = document.getElementById('details-view');
-        
-        // (ELIMINADO) Tienda
-        
-        // Detalles (Diseño Amazon)
         const backToStoreBtn = document.getElementById('back-to-store-btn');
         const detailsImg = document.getElementById('details-img'); 
         const detailsName = document.getElementById('details-name');
@@ -477,8 +451,6 @@
         const priceSummaryFee = document.getElementById('price-summary-fee');
         const priceSummaryTotal = document.getElementById('price-summary-total');
         const openPurchaseModalBtn = document.getElementById('open-purchase-modal-btn');
-        
-        // Modal de Confirmación
         const purchaseModal = document.getElementById('purchase-modal');
         const modalBackdrop = document.getElementById('modal-backdrop');
         const cancelPurchaseBtn = document.getElementById('cancel-purchase-btn');
@@ -489,55 +461,34 @@
         const modalCurrentBalance = document.getElementById('modal-current-balance');
         const modalRemainingBalance = document.getElementById('modal-remaining-balance');
         const modalMessage = document.getElementById('modal-message');
-
-        // Slider
         const slider = document.getElementById('slider');
         const sliderThumb = document.getElementById('slider-thumb');
         const sliderTrack = document.getElementById('slider-track');
         let isDragging = false;
-
-        // (ELIMINADO) Admin
         
-        // --- Lógica de Autenticación ---
-
-        // Listener del estado de autenticación
+        // --- Lógica de Autenticación (sin cambios) ---
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // Usuario está conectado
                 userId = user.uid;
                 userEmail = user.email;
                 const statusText = `Conectado como: ${user.email}`;
                 authStatus.textContent = statusText;
                 authStatusMobile.textContent = statusText;
-                
-                // (ELIMINADO) Comprobar si es Admin
-                
-                // Mostrar app
                 appContainer.style.display = 'block';
-                
-                // Configurar listeners de datos para este usuario
                 await setupUserListeners(userId);
-                
-                // (NUEVO) Cargar el item de la URL
                 await loadItemFromUrl(); 
-
             } else {
-                // Usuario está desconectado -> Redirigir a login
-                // (NUEVO) Guardar el ID del item para redirigir después del login
                 const urlParams = new URLSearchParams(window.location.search);
-                const shareId = urlParams.get('id'); // Es 'id', no 'share_id'
+                const shareId = urlParams.get('id');
                 if (shareId) {
-                    // Guardar en sessionStorage para recordarlo después del login
                     sessionStorage.setItem('redirect_store_id', shareId);
                 }
                 window.location.href = 'login.html';
             }
         });
 
-        // Manejar click de Cerrar Sesión (unificado)
         const handleSignOut = async () => {
             try {
-                // (ELIMINADO) Detener listener de admin
                 await signOut(auth);
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
@@ -548,11 +499,11 @@
 
 
         // --- Lógica de Firestore (Listeners en tiempo real) ---
-
         async function setupUserListeners(currentUserId) {
             if (!currentUserId) return;
 
             // 1. Listener para el perfil del usuario (monedas)
+            // ¡Esto sigue funcionando! onSnapshot solo lee datos.
             const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'profile', 'data');
             
             onSnapshot(userProfileRef, (docSnap) => {
@@ -562,47 +513,29 @@
                     userCoinsDisplay.textContent = currentUserCoins;
                     userCoinsMobile.textContent = currentUserCoins;
                 } else {
-                    console.warn("Perfil de usuario no encontrado, esto no debería pasar si el registro fue correcto.");
+                    console.warn("Perfil de usuario no encontrado.");
                     userCoinsDisplay.textContent = '0';
                     userCoinsMobile.textContent = '0';
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
             });
-
-            // (ELIMINADO) Cargar modelos
-            
-            // (ELIMINADO) Listener de Admin
         }
 
-        // --- (ELIMINADO) Carga de Modelos ---
-        
-        // --- (ELIMINADO) Funciones de Renderizado (Modelos) ---
-        
-        // --- (ELIMINADO) Lógica de Búsqueda ---
-        
-        // --- Lógica de Navegación de Vistas (SIMPLIFICADA) ---
-        // (ELIMINADO) showView
-        
-        // Volver a la tienda desde Detalles (MODIFICADO)
+        // --- Lógica de Navegación y Carga de Detalles (sin cambios) ---
         backToStoreBtn.addEventListener('click', (e) => { 
             e.preventDefault(); 
             window.location.href = 'home.html'; 
         });
 
-        // --- Lógica de la Vista de Detalles (Amazon-Style) ---
-
-        // (NUEVA) Función para cargar item desde la URL
         async function loadItemFromUrl() {
             const urlParams = new URLSearchParams(window.location.search);
             let itemId = urlParams.get('id');
 
-            // (NUEVO) Comprobar sessionStorage por si venimos de un login
             const redirectId = sessionStorage.getItem('redirect_store_id');
             if (redirectId) {
                 itemId = redirectId;
-                sessionStorage.removeItem('redirect_store_id'); // Limpiar
-                // (NUEVO) Actualizar la URL para que muestre el ID (sin recargar)
+                sessionStorage.removeItem('redirect_store_id');
                 window.history.replaceState({}, document.title, `store.html?id=${itemId}`);
             }
 
@@ -621,7 +554,6 @@
                 
                 const thing = await res.json();
                 
-                // Simular el objeto 'dataset' que openDetailsView espera
                 const highResImgUrl = thing.preview_image || (thing.thumbnail ? thing.thumbnail.replace('thumbnail', 'preview_large') : '');
                 const dataset = {
                     id: thing.id,
@@ -630,7 +562,6 @@
                     img: highResImgUrl
                 };
                 
-                // Llamar a la función de detalles refactorizada
                 await openDetailsViewWithData(dataset);
 
             } catch (error) {
@@ -639,15 +570,12 @@
             }
         }
         
-        // Función principal de detalles
         async function openDetailsViewWithData(dataset) {
             const { id, name, img, desc } = dataset;
             
-            currentModelToPurchase = { id, name, img, desc }; // Guardar datos
+            currentModelToPurchase = { id, name, img, desc }; 
             
-            // 1. Resetear UI de Detalles
-            // (No es necesario showView('details') porque ya está visible)
-            window.scrollTo(0, 0); // Subir al inicio
+            window.scrollTo(0, 0); 
 
             detailsImg.src = img; 
             detailsName.textContent = name;
@@ -663,33 +591,22 @@
             priceSummaryFee.textContent = '+ 0 monedas';
             priceSummaryTotal.textContent = '...';
 
-            // 2. Fetch en Paralelo (Imágenes y Precio)
             const detailsEndpoint = `${workerUrl}/details?id=${id}`;
             const priceEndpoint = `${workerUrl}/calculate-price?id=${id}&name=${encodeURIComponent(name)}&imageUrl=${encodeURIComponent(img)}`;
             
             let bestImage = img; 
 
-            // Promise for Images
             const imagesPromise = fetch(detailsEndpoint)
-                .then(res => {
-                    if (res.ok) return res.json();
-                    throw new Error('No se pudieron cargar detalles de imágenes');
-                })
+                .then(res => res.ok ? res.json() : Promise.reject('No se pudieron cargar detalles de imágenes'))
                 .then(thingData => {
                     if (thingData.default_image?.url) {
                         bestImage = thingData.default_image.url;
                     }
                 })
-                .catch(err => {
-                    console.warn("Error al cargar imagen de alta calidad (se usará la de la tarjeta):", err.message);
-                });
+                .catch(err => console.warn("Error al cargar imagen de alta calidad:", err));
 
-            // Promise for Price
             const pricePromise = fetch(priceEndpoint)
-                .then(res => {
-                    if (res.ok) return res.json();
-                    return res.json().then(errData => { throw new Error(errData.error || 'Error del servidor al calcular precio') });
-                })
+                .then(res => res.ok ? res.json() : res.json().then(errData => Promise.reject(errData.error || 'Error del servidor al calcular precio')))
                 .then(data => {
                     currentCalculatedPrice = data.basePrice; 
                     detailsPriceText.textContent = currentCalculatedPrice;
@@ -697,7 +614,7 @@
                     detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
                 })
                 .catch(error => {
-                    console.error("Error al calcular el precio con el Worker:", error.message);
+                    console.error("Error al calcular el precio con el Worker:", error);
                     currentCalculatedPrice = 150; // Fallback
                     detailsPriceText.textContent = currentCalculatedPrice;
                     const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); 
@@ -705,62 +622,48 @@
                     detailsPriceError.textContent = 'Error IA. Usando precio base.';
                 });
 
-            // 3. Esperar a que ambas terminen
             await Promise.all([imagesPromise, pricePromise]);
 
-            // 4. Construir UI con los datos
             detailsImg.src = bestImage; 
             currentModelToPurchase.img = bestImage; 
             updatePriceSummary(); 
 
-            // 5. Finalizar UI
             detailsPriceSpinner.style.display = 'none';
             detailsPriceCurrency.classList.remove('hidden');
             openPurchaseModalBtn.disabled = false;
         }
 
-        // --- Lógica de Compartir ---
+        // --- Lógica de Compartir (sin cambios) ---
         function copyToClipboard(text) {
             const tempInput = document.createElement('textarea');
             tempInput.value = text;
             document.body.appendChild(tempInput);
-            
             tempInput.select();
             tempInput.setSelectionRange(0, 99999); 
-            
             let success = false;
             try {
                 success = document.execCommand('copy');
-            } catch (err) {
-                console.error('Error al copiar (execCommand):', err);
-            }
-            
+            } catch (err) { console.error('Error al copiar (execCommand):', err); }
             document.body.removeChild(tempInput);
-            
             if (success) {
                 shareConfirm.classList.remove('hidden');
-                setTimeout(() => {
-                    shareConfirm.classList.add('hidden');
-                }, 2000);
+                setTimeout(() => { shareConfirm.classList.add('hidden'); }, 2000);
             } else {
                 alert('No se pudo copiar el enlace. Cópialo manually: ' + text);
             }
         }
-
         shareBtn.addEventListener('click', () => {
-            // (MODIFICADO) La URL ya tiene el ID
             const shareUrl = window.location.href;
             copyToClipboard(shareUrl);
         });
 
-        // --- Lógica del Cuadro de Compra (Detalles) ---
-
+        // --- Lógica del Cuadro de Compra (sin cambios) ---
         function updatePriceSummary() {
              if (isNaN(currentCalculatedPrice)) { 
-                console.error("Precio base no válido:", currentCalculatedPrice);
-                openPurchaseModalBtn.disabled = true; 
-                return; 
-            }
+                 console.error("Precio base no válido:", currentCalculatedPrice);
+                 openPurchaseModalBtn.disabled = true; 
+                 return; 
+             }
             const basePrice = currentCalculatedPrice;
             const selectedOption = colorPicker.options[colorPicker.selectedIndex];
             const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
@@ -775,22 +678,12 @@
 
             openPurchaseModalBtn.disabled = false; 
         }
-
-        // Evento al cambiar el color
         colorPicker.addEventListener('change', updatePriceSummary);
 
-        // --- Lógica del Modal de Confirmación ---
-
-        // Abrir Modal
+        // --- Lógica del Modal de Confirmación (sin cambios) ---
         openPurchaseModalBtn.addEventListener('click', () => {
             if (!currentModelToPurchase || !currentPurchaseDetails || isNaN(currentPurchaseDetails.totalPrice)) return;
-
             const { totalPrice, selectedColor } = currentPurchaseDetails;
-
-            if (currentUserCoins < totalPrice) {
-                detailsPriceError.textContent = 'No tienes suficientes monedas para este artículo.';
-                return;
-            }
             
             detailsPriceError.textContent = ''; 
 
@@ -807,8 +700,13 @@
             modalRemainingBalance.classList.toggle('font-bold', remainingBalance < 0);
             
             modalMessage.textContent = '';
+            
+            if (remainingBalance < 0) {
+                 modalMessage.textContent = 'No tienes fondos suficientes para esta compra.';
+                 modalMessage.className = 'mt-4 text-sm text-yellow-600 font-medium';
+            }
+            
             resetSlider();
-
             purchaseModal.classList.remove('hidden');
         });
 
@@ -816,8 +714,7 @@
             purchaseModal.classList.add('hidden');
         }
 
-        // --- Lógica del Slider de Confirmación ---
-
+        // --- Lógica del Slider de Confirmación (sin cambios) ---
         function resetSlider() {
             sliderThumb.style.left = '0px';
             sliderTrack.style.width = '0px';
@@ -830,7 +727,7 @@
         function completePurchase() {
             slider.classList.add('unlocked');
             sliderThumb.querySelector('svg').style.transform = 'rotate(360deg)';
-            handlePurchase();
+            handlePurchase(); // ¡Llamar a la lógica de compra!
         }
 
         const startDrag = (e) => {
@@ -843,16 +740,12 @@
         const onDrag = (e) => {
             if (!isDragging) return;
             e.preventDefault(); 
-            
             const clientX = e.clientX ?? e.touches?.[0]?.clientX;
              if (clientX === undefined) return; 
-
             const rect = slider.getBoundingClientRect();
             let newX = clientX - rect.left - (sliderThumb.offsetWidth / 2);
             const maxPos = slider.offsetWidth - sliderThumb.offsetWidth;
-
             newX = Math.max(0, Math.min(newX, maxPos)); 
-
             sliderThumb.style.left = `${newX}px`;
             sliderTrack.style.width = `${newX + (sliderThumb.offsetWidth / 2)}px`;
         };
@@ -860,13 +753,10 @@
         const endDrag = (e) => {
             document.body.style.userSelect = ''; 
             if (!isDragging || slider.classList.contains('unlocked')) return;
-            
             isDragging = false;
             slider.classList.remove('dragging');
-
             const maxPos = slider.offsetWidth - sliderThumb.offsetWidth;
             const currentPos = parseFloat(sliderThumb.style.left || 0);
-
             if (currentPos > maxPos - 10) {
                 sliderThumb.style.left = `${maxPos}px`;
                 sliderTrack.style.width = `100%`;
@@ -876,20 +766,20 @@
             }
         };
 
-        // Eventos de Mouse
         sliderThumb.addEventListener('mousedown', startDrag);
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('mouseup', endDrag);
         document.addEventListener('mouseleave', () => { if(isDragging) endDrag(); });
-
-        // Eventos Táctiles
         sliderThumb.addEventListener('touchstart', startDrag, { passive: true }); 
         document.addEventListener('touchmove', onDrag, { passive: false }); 
         document.addEventListener('touchend', endDrag);
         document.addEventListener('touchcancel', endDrag); 
 
+        cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
+        modalBackdrop.addEventListener('click', closePurchaseModal);
 
-        // --- Lógica de Compra (Firestore) ---
+
+        // --- ¡¡¡MODIFICADO!!! Lógica de Compra (Llama al Worker) ---
         async function handlePurchase() {
             if (!currentModelToPurchase || !userId || !currentPurchaseDetails || isNaN(currentPurchaseDetails.totalPrice)) {
                  modalMessage.textContent = 'Error: Datos de compra inválidos.';
@@ -898,46 +788,51 @@
                  return;
             }
 
-            const { totalPrice, selectedColor } = currentPurchaseDetails;
-
-            if (currentUserCoins < totalPrice) {
-                modalMessage.textContent = 'Error: Fondos insuficientes.';
-                modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
-                setTimeout(resetSlider, 1500);
-                return;
-            }
-
+            // ¡Ya no comprobamos las monedas aquí! El servidor lo hará.
+            
             cancelPurchaseBtn.disabled = true;
             modalMessage.textContent = 'Procesando tu pedido...';
             modalMessage.className = 'mt-4 text-sm text-blue-600 font-medium';
 
             try {
-                const newCoinBalance = currentUserCoins - totalPrice;
-                const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
-                await updateDoc(userProfileRef, {
-                    coins: newCoinBalance
-                });
+                // 1. Obtener el token de autenticación del usuario
+                const user = auth.currentUser;
+                if (!user) {
+                    throw new Error("Usuario no autenticado.");
+                }
+                const token = await getIdToken(user); // ¡Token de seguridad!
 
-                const orderData = {
-                    modelId: currentModelToPurchase.id, 
+                // 2. Preparar los datos del pedido para enviar al worker
+                const orderPayload = {
+                    modelId: currentModelToPurchase.id,
                     modelName: currentModelToPurchase.name,
-                    color: selectedColor,
-                    pricePaid: totalPrice,
-                    status: 'Pendiente', 
-                    createdAt: serverTimestamp(),
-                    userId: userId, 
-                    userEmail: userEmail 
+                    color: currentPurchaseDetails.selectedColor,
+                    totalPrice: currentPurchaseDetails.totalPrice,
+                    pricePaid: currentPurchaseDetails.totalPrice // (Coinciden en este caso)
                 };
 
-                const userOrdersRef = collection(db, 'artifacts', appId, 'users', userId, 'orders');
-                const docRef = await addDoc(userOrdersRef, orderData);
-                
-                const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', docRef.id);
-                await setDoc(adminOrderRef, orderData);
+                // 3. Llamar al endpoint /buy del worker
+                const response = await fetch(`${workerUrl}/buy`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Enviar el token
+                    },
+                    body: JSON.stringify(orderPayload)
+                });
 
+                const result = await response.json();
+
+                if (!response.ok) {
+                    // El worker devolvió un error (ej. 402 Fondos insuficientes)
+                    throw new Error(result.error || `Error ${response.status}`);
+                }
+
+                // 4. ¡Éxito!
                 modalMessage.textContent = '¡Pedido realizado con éxito!';
                 modalMessage.className = 'mt-4 text-sm text-green-600 font-medium';
 
+                // onSnapshot (que está escuchando) actualizará las monedas automáticamente
                 setTimeout(() => {
                     closePurchaseModal();
                     // (MODIFICADO) Redirigir a la tienda
@@ -945,17 +840,15 @@
                 }, 2000);
 
             } catch (error) {
-                console.error("Error al procesar la compra:", error);
-                modalMessage.textContent = 'Error al procesar el pedido. Inténtalo de nuevo.';
+                console.error("Error al procesar la compra (cliente):", error.message);
+                modalMessage.textContent = `Error: ${error.message}`;
+                if (error.message.includes("Fondos insuficientes")) {
+                    modalMessage.textContent = "Error: No tienes fondos suficientes.";
+                }
                 modalMessage.className = 'mt-4 text-sm text-red-600 font-medium';
                 resetSlider(); 
             }
         }
-
-        cancelPurchaseBtn.addEventListener('click', closePurchaseModal);
-        modalBackdrop.addEventListener('click', closePurchaseModal);
-
-        // --- (ELIMINADO) Lógica de Admin ---
 
     </script>
 </body>
