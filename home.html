@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Carga de estilos CSS externos -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- <link rel="stylesheet" href="styles.css"> --> <!-- Comentado para mantener todo en un archivo -->
 
     <!-- Estilos para el slider de confirmación (solo para admin) -->
     <style>
@@ -29,10 +29,33 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* (NUEVO) Estilos para la barra de navegación móvil inferior */
+        .mobile-nav-link {
+            flex: 1 1 0%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            color: #6b7280; /* text-gray-500 */
+            transition: color 0.15s ease-in-out;
+        }
+        .mobile-nav-link:hover {
+            color: #374151; /* text-gray-700 */
+        }
+        .mobile-nav-link.active {
+            color: #2563eb; /* text-blue-600 */
+        }
+        .mobile-nav-link svg {
+            margin-bottom: 0.25rem;
+        }
+
     </style>
 
 </head>
-<body class="antialiased text-gray-800 bg-gray-100">
+<body class="antialiased text-gray-800 bg-gray-100" style="font-family: 'Inter', sans-serif;">
 
     <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
     <div id="app-container" class="min-h-screen hidden">
@@ -127,6 +150,25 @@
                         <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </button>
                 </form>
+
+                <!-- (NUEVO) Botones de Búsqueda Rápida -->
+                <div id="quick-search-buttons" class="mb-6 flex flex-wrap gap-2 justify-center">
+                    <button class="quick-search-btn bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all" data-query="fidget">
+                        Fidget
+                    </button>
+                    <button class="quick-search-btn bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all" data-query="satisfying">
+                        Satisfying
+                    </button>
+                    <button class="quick-search-btn bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all" data-query="keychain">
+                        Llaveros
+                    </button>
+                    <button class="quick-search-btn bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all" data-query="organizer">
+                        Organizador
+                    </button>
+                    <button class="quick-search-btn bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-1.5 rounded-full shadow-sm hover:bg-gray-100 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all" data-query="planter">
+                        Maceta
+                    </button>
+                </div>
 
                 <!-- Spinner de Carga de la Tienda -->
                 <div id="store-loading" class="flex justify-center items-center h-64">
@@ -246,6 +288,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
+        // (La configuración de firebaseConfig se omite por brevedad, pero está en tu código original)
         const firebaseConfig = {
             apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
             authDomain: "dprinting-9b264.firebaseapp.com",
@@ -319,6 +362,8 @@
         const storeLoading = document.getElementById('store-loading');
         const searchForm = document.getElementById('search-form');
         const searchBar = document.getElementById('search-bar');
+        // (NUEVO) Botones de búsqueda rápida
+        const quickSearchButtonsContainer = document.getElementById('quick-search-buttons');
         
         // (ELIMINADO) Elementos de Detalles
         
@@ -384,10 +429,10 @@
         const handleSignOut = async () => {
             try {
                  if (adminOrdersUnsubscribe) {
-                    adminOrdersUnsubscribe();
-                    adminOrdersUnsubscribe = null;
-                    console.log("Listener de admin detenido al cerrar sesión.");
-                }
+                     adminOrdersUnsubscribe();
+                     adminOrdersUnsubscribe = null;
+                     console.log("Listener de admin detenido al cerrar sesión.");
+                 }
                 await signOut(auth);
             } catch (error) {
                 console.error("Error al cerrar sesión:", error);
@@ -599,6 +644,20 @@
             }
         });
 
+        // (NUEVO) Lógica de Búsqueda Rápida
+        quickSearchButtonsContainer.addEventListener('click', (e) => {
+            // Usar delegación de eventos
+            if (e.target.classList.contains('quick-search-btn')) {
+                const searchTerm = e.target.dataset.query;
+                if (searchTerm) {
+                    // Actualizar la barra de búsqueda (opcional pero bueno)
+                    searchBar.value = searchTerm;
+                    // Ejecutar la búsqueda
+                    fetchSearchModels(searchTerm);
+                }
+            }
+        });
+
 
         // --- Lógica de Navegación de Vistas (SIMPLIFICADA) ---
 
@@ -633,7 +692,7 @@
         
         // (NUEVO) Navegación (Tienda) - para volver de admin
         navStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
-        mobileNavStore.addEventListener('click', (e) => { e.preventDefault(); showView('store'); });
+        // mobileNavStore es un enlace <a> href, no necesita listener de vista
 
 
         // --- (ELIMINADO) Lógica de la Vista de Detalles ---
@@ -886,6 +945,8 @@
                 etaControls.classList.add('hidden');
             }
 
+            let orderData; // Para guardar el estado anterior en caso de error
+
             try {
                 const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', orderId);
                 const orderSnap = await getDoc(adminOrderRef);
@@ -894,7 +955,7 @@
                     throw new Error("Pedido no encontrado en la base de datos pública.");
                 }
                 
-                const orderData = orderSnap.data();
+                orderData = orderSnap.data(); // Guardar datos
                 const targetUserId = orderData.userId;
 
                 // (NUEVO) Si el estado cambia a NO Imprimiendo, borrar el ETA
@@ -911,9 +972,9 @@
                     const userOrderRef = doc(db, 'artifacts', appId, 'users', targetUserId, 'orders', orderId);
                      const userOrderSnap = await getDoc(userOrderRef);
                      if (userOrderSnap.exists()) {
-                        await updateDoc(userOrderRef, updateData);
+                         await updateDoc(userOrderRef, updateData);
                      } else {
-                         console.warn(`El pedido ${orderId} no existe en la colección privada del usuario ${targetUserId}. Solo se actualizó la copia pública.`);
+                          console.warn(`El pedido ${orderId} no existe en la colección privada del usuario ${targetUserId}. Solo se actualizó la copia pública.`);
                      }
                 } else {
                     console.warn(`No se pudo actualizar la copia privada del pedido ${orderId} (falta userId). Solo se actualizó la copia pública.`);
@@ -923,8 +984,10 @@
 
             } catch (error) {
                 console.error(`Error al actualizar estado del pedido ${orderId}:`, error);
-                 // Revertir el select visualmente si falla
-                 selectElement.value = orderData.status; 
+                 // Revertir el select visualmente si falla y tenemos orderData
+                 if (orderData) {
+                    selectElement.value = orderData.status; 
+                 }
             } finally {
                 selectElement.disabled = false;
             }
@@ -938,10 +1001,10 @@
             const amount = parseInt(amountInput.value);
             
              if (isNaN(amount)) {
-                adminMessage.textContent = 'Error: La cantidad debe ser un número.';
-                adminMessage.className = 'text-sm mt-2 text-center text-red-600';
-                return;
-            }
+                 adminMessage.textContent = 'Error: La cantidad debe ser un número.';
+                 adminMessage.className = 'text-sm mt-2 text-center text-red-600';
+                 return;
+             }
 
             adminMessage.textContent = 'Procesando...';
             adminMessage.className = 'text-sm mt-2 text-center text-gray-600'; 
@@ -959,8 +1022,8 @@
                     }
                     targetUserIdToUpdate = lookupSnap.data().userId;
                      if (!targetUserIdToUpdate) { 
-                        throw new Error("El documento de búsqueda existe pero no contiene userId.");
-                    }
+                         throw new Error("El documento de búsqueda existe pero no contiene userId.");
+                     }
                 }
 
                 const profileRef = doc(db, 'artifacts', appId, 'users', targetUserIdToUpdate, 'profile', 'data');
