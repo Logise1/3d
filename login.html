@@ -162,8 +162,9 @@
             };
         }
         
-        // (¡¡¡CORREGIDO!!!) Usar __app_id si existe, si no, usar el 'projectId' del config
-        const appId = typeof __app_id !== 'undefined' ? __app_id : (firebaseConfig.projectId || 'default-project-id');
+        // (¡¡¡CORREGIDO!!!) Usar __app_id si existe, si no, 'dprinting-9b264' (tu ID explícito)
+        const fallbackId = 'dprinting-9b264';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : fallbackId;
         console.log("Usando appId para Firestore:", appId);
 
         // Inicializar Firebase
@@ -205,7 +206,6 @@
          */
         function getPageUrl(page) {
             const currentPath = window.location.pathname;
-            // Asume que 'login.html' está al mismo nivel que 'home.html' y 'store.html'
             const newPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1) + page;
             return window.location.origin + newPath;
         }
@@ -314,11 +314,12 @@
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
                 
+                // Llamar a la función para crear los documentos en Firestore
                 await setupNewUserProfile(user.uid, email, name, phone);
                 
                 isNewUser = true; 
                 
-                // onAuthStateChanged se disparará
+                // onAuthStateChanged se disparará y manejará la redirección
 
             } catch (error) {
                 console.error("Error de registro:", error.code, error.message);
