@@ -191,7 +191,7 @@
         }
 
         // --- Variables de Estado ---
-        let isNewUser = false; 
+        let isRegistering = false; // <-- !! CORRECCIÓN: Variable de "seguro"
         
         // --- Elementos del DOM ---
         const loginForm = document.getElementById('login-form');
@@ -218,17 +218,21 @@
                 if (user) {
                     console.log(`[onAuthStateChanged] Usuario conectado: ${user.uid}`);
                     
+                    // !!! INICIO DE LA CORRECCIÓN !!!
+                    // Si estamos en medio de un registro (el formulario puso el "seguro"),
+                    // no hacemos NADA. El formulario se encargará de mostrar el modal.
+                    if (isRegistering) {
+                        console.log("[onAuthStateChanged] 'isRegistering' es true. Ignorando este evento. El formulario de registro tiene el control.");
+                        return; 
+                    }
+                    // !!! FIN DE LA CORRECCIÓN !!!
+
                     const redirectId = sessionStorage.getItem('redirect_store_id');
                     if(redirectId) console.log(`[onAuthStateChanged] Se encontró redirectId: ${redirectId}`);
                     sessionStorage.removeItem('redirect_store_id'); 
                     
-                    console.log(`[onAuthStateChanged] Comprobando isNewUser... valor actual: ${isNewUser}`);
-
-                    if (isNewUser) {
-                        console.log("[onAuthStateChanged] isNewUser es true. Mostrando modal de bienvenida...");
-                        welcomeModal.classList.remove('hidden'); 
-                        isNewUser = false; // Resetea el flag
-                    } else if (redirectId) {
+                    // Esta lógica ahora solo se aplica a usuarios EXISTENTES que cargan la página
+                    if (redirectId) {
                         console.log("[onAuthStateChanged] Usuario existente. Redirigiendo a item compartido:", redirectId);
                         window.location.href = getPageUrl(`store.html?id=${redirectId}`);
                     } else {
@@ -289,7 +293,6 @@
             } catch (error) {
                 console.error(`[setupNewUserProfile] ERROR al crear documentos en Firestore:`, error);
                 authMessage.textContent = "Error al guardar el perfil. Revisa la consola. " + error.message;
-                // Importante: Re-lanzamos el error para que el 'try/catch' del registro se entere
                 throw error; 
             }
         }
@@ -302,7 +305,7 @@
                 console.error("[Login] Auth no está disponible.");
                 return;
             }
-            isNewUser = false; 
+            // isNewUser = false; // Ya no se usa
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
             authMessage.textContent = ''; 
@@ -323,6 +326,12 @@
                  console.error("[Registro] Auth no está disponible.");
                 return;
             }
+
+            // !!! INICIO DE LA CORRECCIÓN !!!
+            isRegistering = true; // 1. Ponemos el "seguro"
+            console.log("[Registro] 'isRegistering' = true");
+            // !!! FIN DE LA CORRECCIÓN !!!
+
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const name = document.getElementById('register-name').value;
@@ -334,6 +343,7 @@
             if (!name || !phone) {
                 authMessage.textContent = 'El nombre real y el teléfono son obligatorios.';
                 console.warn("[Registro] Faltan nombre o teléfono.");
+                isRegistering = false; // <-- No olvides quitar el seguro si falla
                 return;
             }
             
@@ -347,15 +357,22 @@
                 await setupNewUserProfile(user.uid, email, name, phone);
                 console.log("[Registro] 4. setupNewUserProfile completado.");
 
-                isNewUser = true; 
-                console.log("[Registro] 5. isNewUser = true. Esperando onAuthStateChanged.");
-                
-                // onAuthStateChanged se disparará automáticamente
+                // !!! INICIO DE LA CORRECCIÓN !!!
+                // isNewUser = true; // Ya no se usa
+                console.log("[Registro] 5. Mostrando modal de bienvenida MANUALMENTE.");
+                // Mostramos el modal directamente, ya que el listener de Auth fue "ignorado"
+                welcomeModal.classList.remove('hidden');
+                // !!! FIN DE LA CORRECCIÓN !!!
             
             } catch (error) {
                 console.error(`[Registro] ERROR en el proceso de registro: ${error.code}`, error.message);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
-                isNewUser = false; 
+            } finally {
+                // !!! INICIO DE LA CORRECCIÓN !!!
+                // 6. Quitamos el "seguro" pase lo que pase (incluso si hay error)
+                isRegistering = false;
+                console.log("[Registro] 'isRegistering' = false (en finally)");
+                // !!! FIN DE LA CORRECCIÓN !!!
             }
         });
 
@@ -380,7 +397,7 @@
             welcomeModal.classList.add('hidden');
             
             const redirectId = sessionStorage.getItem('redirect_store_id');
-            sessionStorage.removeItem('redirect_store_id'); // Limpiar por si acaso
+            sessionStorage.removeItem('redirect_store_id');
             
             if (redirectId) {
                 console.log(`[Modal] Redirigiendo a store.html?id=${redirectId}`);
