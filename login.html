@@ -10,9 +10,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- Carga de estilos CSS externos -->
-    <link rel="stylesheet" href="styles.css">
+    
+    <!-- <link rel="stylesheet" href="styles.css"> -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 
 </head>
 <body class="antialiased text-gray-800">
@@ -127,7 +131,6 @@
 
     <!-- Script de Firebase -->
     <script type="module">
-        // Importar getApps y getApp
         import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { 
             getAuth, 
@@ -145,45 +148,46 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
+        console.log("[Debug] Cargando script...");
         let firebaseConfig;
         try {
             firebaseConfig = JSON.parse(__firebase_config);
-            console.log("Usando config global (__firebase_config)");
+            console.log("[Debug] Usando config global (__firebase_config)");
         } catch (e) {
-            console.warn("ADVERTENCIA: __firebase_config no está definida. Usando config local de fallback. Esto es normal si estás probando localmente.");
+            console.warn("ADVERTENCIA: __firebase_config no está definida. Usando config local de fallback.");
             firebaseConfig = {
-              apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
-              authDomain: "dprinting-9b264.firebaseapp.com",
-              projectId: "dprinting-9b264",
-              storageBucket: "dprinting-9b264.firebasestorage.app",
-              messagingSenderId: "647333546063",
-              appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
-              measurementId: "G-FWKS2HB1SE"
+                apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+                authDomain: "dprinting-9b264.firebaseapp.com",
+                projectId: "dprinting-9b264",
+                storageBucket: "dprinting-9b264.appspot.com",
+                messagingSenderId: "647333546063",
+                appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+                measurementId: "G-FWKS2HB1SE"
             };
         }
         
-        // (¡¡¡CORREGIDO!!!) Usar __app_id si existe, si no, 'dprinting-9b264' (tu ID explícito)
         const fallbackId = 'dprinting-9b264';
         const appId = typeof __app_id !== 'undefined' ? __app_id : fallbackId;
-        console.log("Usando appId para Firestore:", appId);
+        console.log(`[Debug] Usando appId para Firestore: ${appId}`);
 
         // Inicializar Firebase
         let app, db, auth;
         try {
             if (getApps().length === 0) {
                 app = initializeApp(firebaseConfig);
-                console.log("Firebase inicializado (nueva app).");
+                console.log("[Debug] Firebase inicializado (nueva app).");
             } else {
                 app = getApp(); 
-                console.log("Usando app de Firebase existente.");
+                console.log("[Debug] Usando app de Firebase existente.");
             }
             
             db = getFirestore(app);
             auth = getAuth(app);
             setLogLevel('Debug');
+            console.log("[Debug] Servicios de Firebase (db, auth) obtenidos.");
             
         } catch (error) {
-            console.error("Error al inicializar Firebase:", error);
+            console.error("Error CRÍTICO al inicializar Firebase:", error);
         }
 
         // --- Variables de Estado ---
@@ -197,13 +201,9 @@
         const authMessage = document.getElementById('auth-message');
         const welcomeModal = document.getElementById('welcome-modal');
         const closeWelcomeModalBtn = document.getElementById('close-welcome-modal-btn');
+        console.log("[Debug] Elementos del DOM cargados.");
 
-        // --- (CORREGIDO) Función Auxiliar para Redirección ---
-        /**
-         * Crea una URL absoluta para una página.
-         * @param {string} page - El nombre de la página (ej. "home.html")
-         * @returns {string} - La URL completa (ej. "https://.../home.html")
-         */
+        // --- Función Auxiliar para Redirección ---
         function getPageUrl(page) {
             const currentPath = window.location.pathname;
             const newPath = currentPath.substring(0, currentPath.lastIndexOf('/') + 1) + page;
@@ -213,49 +213,60 @@
         // --- Lógica de Autenticación ---
 
         if (auth) {
+            console.log("[Debug] Adjuntando listener onAuthStateChanged...");
             onAuthStateChanged(auth, async (user) => {
                 if (user) {
-                    // Usuario está conectado
-                    console.log("Usuario conectado:", user.uid);
+                    console.log(`[onAuthStateChanged] Usuario conectado: ${user.uid}`);
                     
                     const redirectId = sessionStorage.getItem('redirect_store_id');
+                    if(redirectId) console.log(`[onAuthStateChanged] Se encontró redirectId: ${redirectId}`);
                     sessionStorage.removeItem('redirect_store_id'); 
                     
+                    console.log(`[onAuthStateChanged] Comprobando isNewUser... valor actual: ${isNewUser}`);
+
                     if (isNewUser) {
+                        console.log("[onAuthStateChanged] isNewUser es true. Mostrando modal de bienvenida...");
                         welcomeModal.classList.remove('hidden'); 
-                        isNewUser = false; 
+                        isNewUser = false; // Resetea el flag
                     } else if (redirectId) {
-                        console.log("Redirigiendo a item compartido:", redirectId);
+                        console.log("[onAuthStateChanged] Usuario existente. Redirigiendo a item compartido:", redirectId);
                         window.location.href = getPageUrl(`store.html?id=${redirectId}`);
                     } else {
-                        console.log("Usuario registrado, redirigiendo a home.");
+                        console.log("[onAuthStateChanged] Usuario existente. Redirigiendo a home.");
                         window.location.href = getPageUrl('home.html');
                     }
                 } else {
-                    // Usuario está desconectado
-                    console.log("Usuario desconectado. Intentando auth token...");
+                    console.log("[onAuthStateChanged] Usuario desconectado. Comprobando token inicial...");
                     try {
                         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                            console.log("Intentando signInWithCustomToken...");
+                            console.log("[onAuthStateChanged] Intentando signInWithCustomToken...");
                             await signInWithCustomToken(auth, __initial_auth_token);
                         } else {
-                            console.log("No hay token. Esperando inicio de sesión manual.");
+                            console.log("[onAuthStateChanged] No hay token inicial. Esperando inicio de sesión manual.");
                         }
                     } catch (authError) {
-                        console.error("Error durante el login automático (token):", authError);
+                        console.error("[onAuthStateChanged] Error durante el login automático (token):", authError);
                     }
                 }
             });
         } else {
-            console.error("La autenticación de Firebase (auth) no se pudo inicializar. La app no funcionará.");
+            console.error("ERROR FATAL: El objeto 'auth' de Firebase no se inicializó. La app no funcionará.");
             authMessage.textContent = "Error crítico al conectar con Firebase. Refresca la página.";
         }
 
+        /**
+         * Crea los documentos de perfil (privado y público) para un nuevo usuario.
+         */
         async function setupNewUserProfile(userId, email, name, phone) {
-            console.log("Creando perfil para nuevo usuario en appId:", appId);
+            console.log(`[setupNewUserProfile] Iniciado para UID: ${userId}, Email: ${email}`);
+            console.log(`[setupNewUserProfile] Usando appId: ${appId}`);
+
             try {
-                // Ruta privada
+                // 1. Perfil Privado
+                const privatePath = `artifacts/${appId}/users/${userId}/profile/data`;
+                console.log(`[setupNewUserProfile] 1. Creando perfil privado en: ${privatePath}`);
                 const userProfileRef = doc(db, 'artifacts', appId, 'users', userId, 'profile', 'data');
+                
                 await setDoc(userProfileRef, { 
                     userId: userId,
                     email: email, 
@@ -264,22 +275,33 @@
                     coins: 0, 
                     createdAt: serverTimestamp()
                 });
-                console.log("Perfil privado creado exitosamente.");
+                console.log("[setupNewUserProfile] 1. Perfil privado CREADO.");
 
-                // Ruta pública
+                // 2. Lookup Público
+                const publicPath = `artifacts/${appId}/public/data/user-lookup/${email}`;
+                console.log(`[setupNewUserProfile] 2. Creando lookup público en: ${publicPath}`);
                 const userLookupRef = doc(db, 'artifacts', appId, 'public', 'data', 'user-lookup', email);
+                
                 await setDoc(userLookupRef, { userId: userId });
-                console.log("Public user lookup creado exitosamente.");
+                console.log("[setupNewUserProfile] 2. Lookup público CREADO.");
+                console.log("[setupNewUserProfile] Función completada exitosamente.");
+
             } catch (error) {
-                console.error("Error al crear perfil de usuario (profile o lookup):", error);
-                authMessage.textContent = "Error al guardar el perfil. " + error.message;
+                console.error(`[setupNewUserProfile] ERROR al crear documentos en Firestore:`, error);
+                authMessage.textContent = "Error al guardar el perfil. Revisa la consola. " + error.message;
+                // Importante: Re-lanzamos el error para que el 'try/catch' del registro se entere
+                throw error; 
             }
         }
 
         // Manejar envío de formulario de Login
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!auth) return; 
+            console.log("[Login] Formulario de login enviado.");
+            if (!auth) {
+                console.error("[Login] Auth no está disponible.");
+                return;
+            }
             isNewUser = false; 
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
@@ -287,9 +309,9 @@
 
             try {
                 await signInWithEmailAndPassword(auth, email, password);
-                // onAuthStateChanged se encargará de la redirección
+                console.log("[Login] signInWithEmailAndPassword exitoso. onAuthStateChanged manejará la redirección.");
             } catch (error) {
-                console.error("Error de inicio de sesión:", error.code);
+                console.error("[Login] Error de inicio de sesión:", error.code);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
             }
         });
@@ -297,32 +319,41 @@
         // Manejar envío de formulario de Registro
         registerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (!auth) return; 
+            if (!auth) {
+                 console.error("[Registro] Auth no está disponible.");
+                return;
+            }
             const email = document.getElementById('register-email').value;
             const password = document.getElementById('register-password').value;
             const name = document.getElementById('register-name').value;
             const phone = document.getElementById('register-phone').value;
             authMessage.textContent = ''; 
+            
+            console.log(`[Registro] Iniciando registro para: ${email}, Nombre: ${name}`);
 
             if (!name || !phone) {
                 authMessage.textContent = 'El nombre real y el teléfono son obligatorios.';
+                console.warn("[Registro] Faltan nombre o teléfono.");
                 return;
             }
             
             try {
-                console.log("Creando nuevo usuario...");
+                console.log("[Registro] 1. Llamando a createUserWithEmailAndPassword...");
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
+                console.log(`[Registro] 2. Éxito Auth. UID: ${user.uid}`); 
                 
-                // Llamar a la función para crear los documentos en Firestore
+                console.log(`[Registro] 3. Llamando a setupNewUserProfile...`);
                 await setupNewUserProfile(user.uid, email, name, phone);
-                
-                isNewUser = true; 
-                
-                // onAuthStateChanged se disparará y manejará la redirección
+                console.log("[Registro] 4. setupNewUserProfile completado.");
 
+                isNewUser = true; 
+                console.log("[Registro] 5. isNewUser = true. Esperando onAuthStateChanged.");
+                
+                // onAuthStateChanged se disparará automáticamente
+            
             } catch (error) {
-                console.error("Error de registro:", error.code, error.message);
+                console.error(`[Registro] ERROR en el proceso de registro: ${error.code}`, error.message);
                 authMessage.textContent = getFirebaseAuthErrorMessage(error.code);
                 isNewUser = false; 
             }
@@ -345,14 +376,17 @@
         
         // --- Modal de Bienvenida ---
         closeWelcomeModalBtn.addEventListener('click', () => {
+            console.log("[Modal] Botón 'Entendido' clickeado.");
             welcomeModal.classList.add('hidden');
             
             const redirectId = sessionStorage.getItem('redirect_store_id');
-            sessionStorage.removeItem('redirect_store_id'); 
+            sessionStorage.removeItem('redirect_store_id'); // Limpiar por si acaso
             
             if (redirectId) {
+                console.log(`[Modal] Redirigiendo a store.html?id=${redirectId}`);
                 window.location.href = getPageUrl(`store.html?id=${redirectId}`);
             } else {
+                console.log("[Modal] Redirigiendo a home.html");
                 window.location.href = getPageUrl('home.html');
             }
         });
@@ -371,7 +405,10 @@
                     return 'La contraseña debe tener al menos 6 caracteres.';
                 case 'auth/invalid-email':
                     return 'El formato del correo electrónico no es válido.';
+                case 'auth/network-request-failed':
+                    return 'Error de red. Comprueba tu conexión a internet.';
                 default:
+                    console.warn(`Error de Auth no traducido: ${errorCode}`);
                     return 'Ocurrió un error. Por favor, inténtalo de nuevo.';
             }
         }
