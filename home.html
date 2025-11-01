@@ -73,7 +73,6 @@
                     </div>
                     <!-- Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <!-- (MODIFICADO) Cambiado a Euros -->
                         <div class="flex items-center bg-green-100 text-green-800 rounded-full px-3 py-1.5">
                             <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span id="user-coins-mobile" class="font-bold text-sm">...</span>
@@ -112,6 +111,10 @@
                         <a href="personalize.html" id="nav-personalize" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Personalizar
                         </a>
+                         <!-- (NUEVO) Enlace Chat -->
+                        <a href="chat.html" id="nav-chat" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Chat
+                        </a>
                         <!-- Pestaña de Admin Pedidos -->
                         <a href="#" id="nav-admin-orders" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
                             Pedidos (Admin)
@@ -120,7 +123,6 @@
 
                     <!-- Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <!-- (MODIFICADO) Cambiado a Euros -->
                         <div class="flex items-center bg-green-100 text-green-800 rounded-full px-4 py-1.5 mr-4">
                             <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span class="text-sm font-medium mr-1">Saldo:</span>
@@ -206,7 +208,7 @@
                 <summary class="font-medium text-lg cursor-pointer">Panel de Administración</summary>
                 <div class="mt-4 grid grid-cols-1 gap-6 border-t pt-4">
                     
-                    <!-- (MODIFICADO) Formulario para Añadir/Quitar Saldo (Euros) -->
+                    <!-- Formulario para Añadir/Quitar Saldo (MODIFICADO) -->
                     <form id="add-coins-form" class="space-y-4 max-w-md mx-auto">
                         <h3 class="text-xl font-semibold">Modificar Saldo de Usuario</h3>
                         
@@ -217,10 +219,11 @@
                         </div>
 
                         <div>
-                            <label for="coins-amount" class="block text-sm font-medium text-gray-700">Cantidad en Euros (ej. 1.00 o -0.50)</label>
-                            <input type="number" id="coins-amount" step="0.01" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1.00">
+                            <!-- (MODIFICADO) A Euros -->
+                            <label for="coins-amount" class="block text-sm font-medium text-gray-700">Cantidad en Euros (ej. 1.50 o -0.50)</label>
+                            <input type="number" step="0.01" id="coins-amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="1.50">
                         </div>
-                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400">
+                        <button type="submit" class="w-full inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                             Modificar Saldo
                         </button>
 
@@ -255,6 +258,12 @@
             <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
             <span class="text-xs">Personalizar</span>
         </a>
+
+         <!-- (NUEVO) Enlace Chat -->
+        <a href="chat.html" id="mobile-nav-chat" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            <span class="text-xs">Chat</span>
+        </a>
         
         <!-- Enlace Pedidos (Admin) -->
         <a href="#" id="mobile-nav-admin-orders" class="mobile-nav-link hidden">
@@ -262,6 +271,16 @@
             <span class="text-xs">Admin</span>
         </a>
     </nav>
+
+    <!-- (NUEVO) Botón Flotante de Chat -->
+    <!-- 'bottom-20' para que esté SOBRE la barra de nav móvil -->
+    <a href="chat.html" 
+       class="fixed bottom-20 sm:bottom-6 right-6 z-40 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-all duration-200"
+       title="Abrir Chat">
+        <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+        </svg>
+    </a>
 
 
     <!-- Script de Firebase -->
@@ -309,6 +328,7 @@
         // ==================================================================
         
         const appId = firebaseConfig.projectId || 'default-app-id';
+        const adminEmails = ['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'];
 
         // Inicializar Firebase
         let app, db, auth;
@@ -328,7 +348,7 @@
         let userId = null;
         let userEmail = null;
         let isAdmin = false;
-        let currentUserCoins = 0; // (MODIFICADO) Esto SIEMPRE guardará el valor en MONEDAS
+        let currentUserCoins = 0; // Se sigue guardando en Monedas
         let adminOrdersUnsubscribe = null; // Para detener el listener de admin
         
         // --- Elementos del DOM ---
@@ -395,7 +415,7 @@
                 authStatusMobile.textContent = statusText;
                 
                 // (MODIFICADO) Comprobar si es Admin
-                if (user.email === 'arielcapdevilagarcia@gmail.com' || user.email === 'cloenarvaez@gmail.com') {
+                if (adminEmails.includes(user.email)) { // (MODIFICADO)
                     isAdmin = true;
                     adminPanel.classList.remove('hidden');
                     navAdminOrders.classList.remove('hidden');
@@ -455,16 +475,13 @@
             onSnapshot(userProfileRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    currentUserCoins = data.coins || 0; // Guardar el valor en monedas
-                    
-                    // (MODIFICADO) Convertir a Euros para mostrar
+                    currentUserCoins = data.coins || 0; // Guardar como monedas
+                    // (MODIFICADO) Mostrar como Euros
                     const userBalanceEuros = (currentUserCoins / 250).toFixed(2);
                     userCoinsDisplay.textContent = `${userBalanceEuros}€`;
                     userCoinsMobile.textContent = `${userBalanceEuros}€`;
-
                 } else {
                     console.warn("Perfil de usuario no encontrado, esto no debería pasar si el registro fue correcto.");
-                    // (MODIFICADO) Mostrar 0.00€
                     userCoinsDisplay.textContent = '0.00€';
                     userCoinsMobile.textContent = '0.00€';
                 }
@@ -785,7 +802,7 @@
                     </div>
                 `;
 
-                // (MODIFICADO) Precio a Euros
+                // (MODIFICADO) Mostrar precio en Euros
                 const priceInEuros = (order.pricePaid / 250).toFixed(2);
 
                 const cardHTML = `
@@ -846,7 +863,7 @@
         // (NUEVO) Manejar guardado de ETA
         async function handleSetEta(e) {
             const button = e.currentTarget;
-            const { orderId, userId } = button.dataset;
+            const { orderId, userId: targetUserId } = button.dataset; // (RENOMBRADO)
             const input = adminOrdersList.querySelector(`.eta-input[data-order-id="${orderId}"]`);
             const timeString = input.value.trim();
 
@@ -873,8 +890,8 @@
                 const adminOrderRef = doc(db, 'artifacts', appId, 'public', 'data', 'allOrders', orderId);
                 await updateDoc(adminOrderRef, updateData);
 
-                if (userId) {
-                    const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
+                if (targetUserId) { // (MODIFICADO)
+                    const userOrderRef = doc(db, 'artifacts', appId, 'users', targetUserId, 'orders', orderId);
                     const userOrderSnap = await getDoc(userOrderRef);
                     if (userOrderSnap.exists()) {
                         await updateDoc(userOrderRef, updateData);
@@ -897,7 +914,7 @@
 
         async function handleAdminCancelOrder(e) {
             const button = e.currentTarget;
-            const { orderId, userId } = button.dataset;
+            const { orderId, userId: targetUserId } = button.dataset; // (RENOMBRADO)
 
             if (!orderId) {
                 console.error("No orderId found on button");
@@ -915,13 +932,13 @@
                 await deleteDoc(adminOrderRef);
 
                 // 2. Delete private order (if userId is available)
-                if (userId) {
-                    const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
+                if (targetUserId) { // (MODIFICADO)
+                    const userOrderRef = doc(db, 'artifacts', appId, 'users', targetUserId, 'orders', orderId);
                     const userOrderSnap = await getDoc(userOrderRef); 
                     if (userOrderSnap.exists()) {
                         await deleteDoc(userOrderRef);
                     } else {
-                        console.warn(`No se encontró el pedido privado para el usuario ${userId}`);
+                        console.warn(`No se encontró el pedido privado para el usuario ${targetUserId}`);
                     }
                 } else {
                     console.warn("No userId provided, no se pudo borrar el pedido privado.");
@@ -1009,18 +1026,17 @@
             const targetEmailInput = document.getElementById('target-user-email');
             const amountInput = document.getElementById('coins-amount');
             const targetEmail = targetEmailInput.value.trim(); 
+            // (MODIFICADO) Leer como Euros (float)
+            const amountInEuros = parseFloat(amountInput.value); 
             
-            // (MODIFICADO) Leer el valor como float
-            const amount = parseFloat(amountInput.value);
-            
-             if (isNaN(amount)) {
-                 adminMessage.textContent = 'Error: La cantidad debe ser un número (ej. 1.50).';
+             if (isNaN(amountInEuros)) {
+                 adminMessage.textContent = 'Error: La cantidad debe ser un número.';
                  adminMessage.className = 'text-sm mt-2 text-center text-red-600';
                  return;
              }
-             
-            // (MODIFICADO) Convertir Euros a monedas
-            const amountInCoins = Math.floor(amount * 250);
+            
+            // (MODIFICADO) Convertir Euros a Monedas (int)
+            const amountInCoins = Math.round(amountInEuros * 250);
 
             adminMessage.textContent = 'Procesando...';
             adminMessage.className = 'text-sm mt-2 text-center text-gray-600'; 
@@ -1049,25 +1065,25 @@
                 }
 
                 const currentCoins = profileSnap.data().coins || 0;
-                // (MODIFICADO) Sumar el valor convertido a monedas
-                const newTotal = currentCoins + amountInCoins;
+                // (MODIFICADO) Sumar monedas
+                const newTotalInCoins = currentCoins + amountInCoins;
+                const newTotalInEuros = (newTotalInCoins / 250).toFixed(2); // Para el mensaje
 
-                 if (newTotal < 0) {
-                     console.warn(`El saldo de ${targetUserEmailToLog} será negativo (${newTotal} monedas).`);
+                 if (newTotalInCoins < 0) {
+                     console.warn(`El saldo de ${targetUserEmailToLog} será negativo (${newTotalInEuros}€).`);
                  }
 
-                await updateDoc(profileRef, { coins: newTotal });
+                // (MODIFICADO) Guardar total en monedas
+                await updateDoc(profileRef, { coins: newTotalInCoins });
 
-                // (MODIFICADO) Mostrar el mensaje en Euros
-                const newTotalInEuros = (newTotal / 250).toFixed(2);
-                adminMessage.textContent = `Éxito: ${amount > 0 ? '+' : ''}${amount.toFixed(2)}€ aplicados a ${targetUserEmailToLog}. Nuevo total: ${newTotalInEuros}€`;
+                adminMessage.textContent = `Éxito: ${amountInEuros > 0 ? '+' : ''}${amountInEuros.toFixed(2)}€ aplicados a ${targetUserEmailToLog}. Nuevo total: ${newTotalInEuros}€`;
                 adminMessage.className = 'text-sm mt-2 text-center text-green-600';
                 
                 targetEmailInput.value = ''; 
                 amountInput.value = '';
 
             } catch (error) {
-                console.error("Error al modificar monedas:", error);
+                console.error("Error al modificar saldo:", error);
                 adminMessage.textContent = `Error: ${error.message}`;
                 adminMessage.className = 'text-sm mt-2 text-center text-red-600';
             }
