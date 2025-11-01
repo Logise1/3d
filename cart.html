@@ -32,10 +32,10 @@
                         <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <span class="font-bold text-xl text-gray-900">Print3D</span>
                     </div>
-                    <!-- Info de Usuario (Monedas) -->
+                    <!-- (MODIFICADO) Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-3 py-1.5">
-                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-3 py-1.5">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span id="user-coins-mobile" class="font-bold text-sm">...</span>
                         </div>
                         <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
@@ -74,11 +74,11 @@
                         </a>
                     </div>
 
-                    <!-- Info de Usuario -->
+                    <!-- (MODIFICADO) Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-4 py-1.5 mr-4">
-                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
-                            <span class="text-sm font-medium mr-1">Monedas:</span>
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-4 py-1.5 mr-4">
+                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <span class="text-sm font-medium mr-1">Saldo:</span>
                             <span id="user-coins" class="font-bold text-sm">...</span>
                         </div>
                         <button id="logout-btn" class="text-sm font-medium text-gray-500 hover:text-gray-700">Cerrar Sesión</button>
@@ -190,7 +190,7 @@
         // --- Variables de Estado de la App ---
         let userId = null;
         let currentUserEmail = null; 
-        let currentUserCoins = 0;
+        let currentUserCoins = 0; // (MODIFICADO) Sigue guardando el valor en MONEDAS
         let countdownInterval = null; // (NUEVO) Intervalo para la cuenta atrás
         
         // --- Elementos del DOM ---
@@ -271,13 +271,16 @@
             onSnapshot(userProfileRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    currentUserCoins = data.coins || 0;
-                    userCoinsDisplay.textContent = currentUserCoins;
-                    userCoinsMobile.textContent = currentUserCoins; // (NUEVO)
+                    currentUserCoins = data.coins || 0; // Sigue en monedas
+                    
+                    // (MODIFICADO) Convertir a Euros para mostrar
+                    const userBalanceEuros = (currentUserCoins / 250).toFixed(2);
+                    userCoinsDisplay.textContent = `${userBalanceEuros}€`;
+                    userCoinsMobile.textContent = `${userBalanceEuros}€`;
                 } else {
                    console.error("Error: Perfil de usuario no encontrado.");
-                   userCoinsDisplay.textContent = '0';
-                   userCoinsMobile.textContent = '0'; // (NUEVO)
+                   userCoinsDisplay.textContent = '0.00€';
+                   userCoinsMobile.textContent = '0.00€';
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
@@ -401,13 +404,17 @@
                     </p>
                 `;
 
+                // (MODIFICADO) Convertir precio a Euros
+                const priceInEuros = (order.pricePaid / 250).toFixed(2);
+
                 const orderItem = `
                     <div class="bg-white rounded-lg shadow-md p-4 flex flex-col sm:flex-row items-start justify-between">
                         <div class="flex items-center space-x-4 mb-3 sm:mb-0">
                             <div class="w-10 h-10 rounded-full border-2 border-gray-200" style="background-color: ${colorHex};" title="${colorName}"></div>
                             <div class="min-w-0"> <!-- (NUEVO) Para truncar texto -->
                                 <p class="text-lg font-semibold truncate">${order.modelName}</p>
-                                <p class="text-sm text-gray-500">Pagado: ${order.pricePaid} monedas</p>
+                                <!-- (MODIFICADO) Mostrar precio en Euros -->
+                                <p class="text-sm text-gray-500">Pagado: ${priceInEuros}€</p>
                                 <!-- (NUEVO) Añadir cuenta atrás aquí -->
                                 ${order.status === 'Imprimiendo' ? countdownHtml : ''}
                             </div>
@@ -469,7 +476,7 @@
                     throw new Error("Ya no se puede cancelar el pedido, está siendo procesado.");
                 }
 
-                // 2. Calcular reembolso (80%)
+                // 2. Calcular reembolso (80%) - Sigue en monedas
                 const refundAmount = Math.floor(parseInt(pricePaid, 10) * 0.80);
 
                 // 3. Reembolsar al usuario
@@ -486,8 +493,9 @@
                 const userOrderRef = doc(db, 'artifacts', appId, 'users', userId, 'orders', orderId);
                 await deleteDoc(userOrderRef); // Copia privada
 
-                // 5. Mostrar mensaje de éxito
-                cancelMessage.textContent = `¡Pedido cancelado! Se han reembolsado ${refundAmount} monedas (80%) a tu cuenta.`;
+                // 5. (MODIFICADO) Mostrar mensaje de éxito en Euros
+                const refundInEuros = (refundAmount / 250).toFixed(2);
+                cancelMessage.textContent = `¡Pedido cancelado! Se han reembolsado ${refundInEuros}€ (80%) a tu cuenta.`;
                 cancelMessage.className = 'mb-4 p-3 rounded-md text-sm bg-green-100 text-green-800';
                 cancelMessage.classList.remove('hidden');
 
