@@ -395,7 +395,8 @@
             adminChatLoading.style.display = 'flex';
             if (currentChatListener) currentChatListener(); // Detener listener de chat si estaba activo
 
-            const chatsRef = collection(db, 'artifacts', appId, 'public', 'chats');
+            // (CORREGIDO) Ruta con 5 segmentos
+            const chatsRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats');
             adminListListener = onSnapshot(query(chatsRef), (snapshot) => {
                 renderAdminChatList(snapshot.docs);
                 adminChatLoading.style.display = 'none';
@@ -476,13 +477,14 @@
             chatForm.dataset.chatUserId = chatUserId;
             chatForm.dataset.chatUserEmail = chatUserEmail; // Email del *usuario*
 
-            // Escuchar la subcolección de mensajes
-            const messagesRef = collection(db, 'artifacts', appId, 'public', 'chats', chatUserId, 'messages');
+            // (CORREGIDO) Ruta con 7 segmentos
+            const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId, 'messages');
             currentChatListener = onSnapshot(query(messagesRef), (snapshot) => {
                 renderMessages(snapshot.docs);
 
                 // Marcar como leído
-                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'chats', chatUserId);
+                // (CORREGIDO) Ruta con 6 segmentos
+                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId);
                 if (isAdmin) {
                     setDoc(chatDocRef, { unreadByAdmin: false }, { merge: true });
                 } else {
@@ -552,7 +554,8 @@
 
             try {
                 // 1. Añadir el nuevo mensaje a la subcolección
-                const messagesRef = collection(db, 'artifacts', appId, 'public', 'chats', targetChatUserId, 'messages');
+                // (CORREGIDO) Ruta con 7 segmentos
+                const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', targetChatUserId, 'messages');
                 await addDoc(messagesRef, {
                     text: text,
                     senderId: userId, // El usuario logueado actualmente
@@ -561,7 +564,8 @@
                 });
 
                 // 2. Actualizar el documento "padre" del chat (para la lista de admin)
-                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'chats', targetChatUserId);
+                // (CORREGIDO) Ruta con 6 segmentos
+                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', targetChatUserId);
                 let chatDataUpdate = {
                     userEmail: targetChatUserEmail, // Email del usuario (no-admin)
                     lastMessage: text,
@@ -577,6 +581,30 @@
                 }
 
                 await setDoc(chatDocRef, chatDataUpdate, { merge: true });
+
+                // (NUEVO) Enviar notificación a ntfy.sh
+                try {
+                    const notificationTitle = `Nuevo mensaje de: ${userEmail}`;
+                    const notificationMessage = text;
+                    const priority = isAdmin ? 'default' : 'high'; // Prioridad alta si es un usuario
+                    const tags = isAdmin ? 'robot' : 'speech_balloon'; // Iconos
+
+                    fetch('https://ntfy.sh/print3d', {
+                        method: 'POST',
+                        body: notificationMessage,
+                        headers: {
+                            'Title': notificationTitle,
+                            'Priority': priority,
+                            'Tags': tags
+                        }
+                    }).catch(ntfyError => {
+                        console.warn("Error al enviar notificación a ntfy.sh:", ntfyError);
+                    });
+
+                } catch (ntfyError) {
+                    console.warn("Error al preparar la notificación ntfy.sh:", ntfyError);
+                }
+
 
             } catch (error) {
                 console.error("Error al enviar mensaje:", error);
