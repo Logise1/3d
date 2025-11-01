@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-R-8">
+    <meta charset="UTF-8"> <!-- Corregido: UTF-8 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print3D Store - Chat</title>
     <!-- Carga de Tailwind CSS -->
@@ -12,7 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- Carga de estilos CSS externos -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- <link rel="stylesheet" href="styles.css"> --> <!-- Comentado si no se usa -->
     
     <style>
         /* Estilos del loader */
@@ -50,6 +50,11 @@
         .mobile-nav-link svg {
             margin-bottom: 0.25rem;
         }
+        
+        /* Asegurar que el scroll del chat funcione bien */
+        #chat-messages {
+            scroll-behavior: smooth;
+        }
     </style>
 
 </head>
@@ -72,7 +77,7 @@
                     <!-- Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
                         <div class="flex items-center bg-green-100 text-green-800 rounded-full px-3 py-1.5">
-                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span id="user-coins-mobile" class="font-bold text-sm">...</span>
                         </div>
                         <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
@@ -122,7 +127,7 @@
                     <!-- Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
                         <div class="flex items-center bg-green-100 text-green-800 rounded-full px-4 py-1.5 mr-4">
-                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span class="text-sm font-medium mr-1">Saldo:</span>
                             <span id="user-coins" class="font-bold text-sm">...</span>
                         </div>
@@ -181,7 +186,8 @@
                         <div class="flex items-center space-x-3">
                             <input type="text" id="chat-input" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Escribe un mensaje..." autocomplete="off">
                             <button type="submit" class="inline-flex items-center justify-center p-2 rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                                <!-- Cambiado a icono de enviar (avión) -->
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L6 12z" /></svg>
                             </button>
                         </div>
                     </form>
@@ -247,14 +253,15 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Configuración de Firebase ---
+        // (La config de Firebase debe estar aquí, la he omitido por brevedad pero está en tu archivo original)
         const firebaseConfig = {
-          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
-          authDomain: "dprinting-9b264.firebaseapp.com",
-          projectId: "dprinting-9b264",
-          storageBucket: "dprinting-9b264.firebasestorage.app",
-          messagingSenderId: "647333546063",
-          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
-          measurementId: "G-FWKS2HB1SE"
+            apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+            authDomain: "dprinting-9b264.firebaseapp.com",
+            projectId: "dprinting-9b264",
+            storageBucket: "dprinting-9b264.firebasestorage.app",
+            messagingSenderId: "647333546063",
+            appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+            measurementId: "G-FWKS2HB1SE"
         };
         
         const appId = firebaseConfig.projectId || 'default-app-id';
@@ -274,12 +281,22 @@
             document.getElementById('auth-status-mobile').textContent = 'Error al conectar con Firebase.';
         }
 
+        // --- (NUEVO) Iconos SVG para Ticks ---
+        // Estado 1: Preparando (Reloj)
+        const TICK_SENDING_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#bee3f8"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 5.168A.75.75 0 009 5.75v5.5a.75.75 0 00.75.75h5.5a.75.75 0 000-1.5H10.25V5.75a.75.75 0 00-.695-.582z" clip-rule="evenodd" /></svg>`;
+        // Estado 2: Enviado (1 Tick)
+        const TICK_SENT_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#bee3f8"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /></svg>`;
+        // Estado 3: Leído (2 Ticks) - Color blanco para destacar sobre el azul
+        const TICK_READ_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#ffffff"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /><path d="M11.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" transform="translate(-5)" /></svg>`;
+
+
         // --- Variables de Estado de la App ---
         let userId = null;
         let userEmail = null; 
         let isAdmin = false;
         let currentUserCoins = 0; // Sigue guardando el valor en MONEDAS
         let currentChatListener = null; // Para detener el listener de mensajes
+        let currentChatDocListener = null; // (NUEVO) Para detener el listener del documento de chat
         let adminListListener = null; // Para detener el listener de la lista de chats
         
         // --- Elementos del DOM ---
@@ -351,6 +368,7 @@
         const handleSignOut = async () => {
             try {
                 if (currentChatListener) currentChatListener();
+                if (currentChatDocListener) currentChatDocListener(); // (NUEVO)
                 if (adminListListener) adminListListener();
                 await signOut(auth);
             } catch (error) {
@@ -393,7 +411,8 @@
             chatInterfaceView.style.display = 'none';
             adminChatListView.style.display = 'block';
             adminChatLoading.style.display = 'flex';
-            if (currentChatListener) currentChatListener(); // Detener listener de chat si estaba activo
+            if (currentChatListener) currentChatListener(); // Detener listener de chat
+            if (currentChatDocListener) currentChatDocListener(); // (NUEVO) Detener listener de doc de chat
 
             // (CORREGIDO) Ruta con 5 segmentos
             const chatsRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats');
@@ -469,31 +488,63 @@
             });
         }
 
+        // (NUEVO) Lógica de carga de mensajes rediseñada
         function loadChatMessages(chatUserId, chatUserEmail) {
-            if (currentChatListener) currentChatListener(); // Detener listener anterior
-            chatMessages.innerHTML = '';
+            if (currentChatListener) currentChatListener();
+            if (currentChatDocListener) currentChatDocListener();
+            chatMessages.innerHTML = ''; // Limpiar mensajes
             
             // Guardar el ID del chat actual en el formulario
             chatForm.dataset.chatUserId = chatUserId;
             chatForm.dataset.chatUserEmail = chatUserEmail; // Email del *usuario*
 
-            // (CORREGIDO) Ruta con 7 segmentos
-            const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId, 'messages');
-            currentChatListener = onSnapshot(query(messagesRef), (snapshot) => {
-                renderMessages(snapshot.docs);
+            // Variables locales para almacenar el estado
+            let chatDocData = {};
+            let messageDocs = [];
 
-                // Marcar como leído
-                // (CORREGIDO) Ruta con 6 segmentos
-                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId);
-                if (isAdmin) {
-                    setDoc(chatDocRef, { unreadByAdmin: false }, { merge: true });
-                } else {
-                    setDoc(chatDocRef, { unreadByUser: false }, { merge: true });
+            // Función unificada para re-renderizar el chat
+            function reRenderChat() {
+                renderMessages(messageDocs, chatDocData);
+            }
+
+            // (CORREGIDO) Ruta con 6 segmentos para el documento de chat
+            const chatDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId);
+            
+            // Listener 1: Escuchar cambios en el documento de chat (para estado 'leído')
+            currentChatDocListener = onSnapshot(chatDocRef, (docSnap) => {
+                chatDocData = docSnap.data() || {};
+                reRenderChat(); // Re-renderizar con los nuevos datos del chat (ej. estado 'leído')
+
+                // Marcar como leído (lógica optimizada para escribir solo si es necesario)
+                if (docSnap.exists()) {
+                    if (isAdmin) {
+                        if (chatDocData.unreadByAdmin === true) {
+                            setDoc(chatDocRef, { unreadByAdmin: false }, { merge: true });
+                        }
+                    } else {
+                        if (chatDocData.unreadByUser === true) {
+                            setDoc(chatDocRef, { unreadByUser: false }, { merge: true });
+                        }
+                    }
                 }
+            }, (error) => {
+                console.error("Error en listener de chatDoc:", error);
+            });
+
+            // (CORREGIDO) Ruta con 7 segmentos para la colección de mensajes
+            const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', chatUserId, 'messages');
+            
+            // Listener 2: Escuchar los mensajes
+            currentChatListener = onSnapshot(query(messagesRef), (snapshot) => {
+                messageDocs = snapshot.docs; // Actualizar la lista de mensajes
+                reRenderChat(); // Re-renderizar con la nueva lista de mensajes
+            }, (error) => {
+                console.error("Error en listener de messages:", error);
             });
         }
 
-        function renderMessages(docs) {
+        // (NUEVO) Lógica de renderizado de mensajes actualizada
+        function renderMessages(docs, chatData = {}) {
             chatMessages.innerHTML = '';
             if (docs.length === 0) {
                 chatMessages.innerHTML = '<p class="text-center text-gray-500 text-sm">No hay mensajes. ¡Envía el primero!</p>';
@@ -512,15 +563,47 @@
                     ? 'bg-blue-600 text-white self-end'
                     : 'bg-gray-200 text-gray-800 self-start';
                 
-                const senderName = msg.senderEmail === userEmail ? 'Tú' : (msg.senderEmail || 'Usuario');
+                // Determinar estado del tick
+                const hasTimestamp = msg.timestamp && msg.timestamp.toDate;
+                const timestamp = hasTimestamp 
+                    ? msg.timestamp.toDate().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) 
+                    : '';
+
+                let tickHtml = '';
+                if (isSender) {
+                    if (!hasTimestamp) {
+                        // Estado 1: Preparando (Reloj)
+                        tickHtml = TICK_SENDING_SVG;
+                    } else {
+                        // Comprobar si ha sido leído por la otra parte
+                        const isRead = (isAdmin && chatData.unreadByUser === false) || (!isAdmin && chatData.unreadByAdmin === false);
+                        
+                        if (isRead) {
+                            // Estado 3: Leído (2 Ticks Blancos)
+                            tickHtml = TICK_READ_SVG;
+                        } else {
+                            // Estado 2: Enviado (1 Tick)
+                            tickHtml = TICK_SENT_SVG;
+                        }
+                    }
+                }
                 
+                const timeClass = isSender ? 'text-blue-200' : 'text-gray-500';
+
                 const messageHtml = `
                     <div class="flex flex-col ${isSender ? 'items-end' : 'items-start'}">
                         <span class="text-xs text-gray-500 mb-0.5 ${isSender ? 'mr-2' : 'ml-2'}">
                             ${msg.senderEmail === userEmail ? 'Tú' : (msg.senderEmail || 'Usuario')}
                         </span>
-                        <div class="p-3 rounded-lg max-w-xs lg:max-w-md ${bubbleClass}">
-                            ${msg.text}
+                        <div class="p-3 rounded-lg max-w-xs lg:max-w-md ${bubbleClass}" style="overflow-wrap: break-word;">
+                            <!-- Texto del mensaje -->
+                            <span>${msg.text}</span>
+                            
+                            <!-- Metadatos (Hora y Ticks) -->
+                            <div class="flex justify-end items-center mt-1 space-x-1" style="height: 16px;">
+                                <span class="text-xs ${timeClass}">${timestamp}</span>
+                                ${tickHtml} <!-- Ticks se insertan aquí -->
+                            </div>
                         </div>
                     </div>
                 `;
@@ -549,6 +632,7 @@
                 return;
             }
 
+            const tempMessageText = chatInput.value; // Guardar el texto temporalmente
             chatInput.value = '';
             chatInput.disabled = true;
 
@@ -556,11 +640,14 @@
                 // 1. Añadir el nuevo mensaje a la subcolección
                 // (CORREGIDO) Ruta con 7 segmentos
                 const messagesRef = collection(db, 'artifacts', appId, 'public', 'data', 'chats', targetChatUserId, 'messages');
+                
+                // La lógica de 'preparando' (reloj) funcionará automáticamente
+                // porque onSnapshot detectará el mensaje antes de que serverTimestamp() se resuelva
                 await addDoc(messagesRef, {
                     text: text,
                     senderId: userId, // El usuario logueado actualmente
                     senderEmail: userEmail,
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp() // Importante para la lógica de ticks
                 });
 
                 // 2. Actualizar el documento "padre" del chat (para la lista de admin)
@@ -609,7 +696,7 @@
 
             } catch (error) {
                 console.error("Error al enviar mensaje:", error);
-                chatInput.value = text; // Devolver el texto si falla
+                chatInput.value = tempMessageText; // Devolver el texto si falla
             } finally {
                 chatInput.disabled = false;
                 chatInput.focus();
