@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-R-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Print3D Store - Chat</title>
     <!-- Carga de Tailwind CSS -->
@@ -586,7 +586,8 @@
                 try {
                     const notificationTitle = `Nuevo mensaje de: ${userEmail}`;
                     const notificationMessage = text;
-                    const priority = isAdmin ? 'default' : 'high'; // Prioridad alta si es un usuario
+                    // (MODIFICADO) Prioridad máxima para usuarios
+                    const priority = isAdmin ? 'default' : 'max'; // Prioridad máxima si es un usuario
                     const tags = isAdmin ? 'robot' : 'speech_balloon'; // Iconos
 
                     fetch('https://ntfy.sh/print3d', {
