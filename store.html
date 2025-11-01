@@ -92,10 +92,10 @@
                         <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                         <span class="font-bold text-xl text-gray-900">Print3D</span>
                     </div>
-                    <!-- Info de Usuario (Monedas) -->
+                    <!-- (MODIFICADO) Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-3 py-1.5">
-                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-3 py-1.5">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
                             <span id="user-coins-mobile" class="font-bold text-sm">...</span>
                         </div>
                         <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
@@ -138,11 +138,11 @@
                         </a>
                     </div>
 
-                    <!-- Info de Usuario -->
+                    <!-- (MODIFICADO) Info de Usuario (Saldo en Euros) -->
                     <div class="flex items-center">
-                        <div class="flex items-center bg-yellow-100 text-yellow-800 rounded-full px-4 py-1.5 mr-4">
-                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
-                            <span class="text-sm font-medium mr-1">Monedas:</span>
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-4 py-1.5 mr-4">
+                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <span class="text-sm font-medium mr-1">Saldo:</span>
                             <span id="user-coins" class="font-bold text-sm">...</span>
                         </div>
                         <button id="logout-btn" class="text-sm font-medium text-gray-500 hover:text-gray-700">Cerrar Sesión</button>
@@ -200,16 +200,18 @@
                             <!-- Cuadro de Compra -->
                             <div class="border border-gray-300 rounded-lg p-5 mt-6 space-y-4">
                                 
-                                <!-- Precio (Monedas y Euros) -->
+                                <!-- (MODIFICADO) Precio (Euros) -->
                                 <div>
                                     <div id="details-price-container" class="flex items-center text-3xl font-bold text-gray-900">
                                         <div id="details-price-spinner" class="loader !w-8 !h-8 !border-2 !border-t-blue-500 mr-2"></div>
                                         <span id="details-price-text">Calculando...</span>
-                                        <span id="details-price-currency" class="hidden ml-1.5 text-yellow-800">
-                                            <svg class="w-7 h-7 inline-block -mt-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                                        <!-- (MODIFICADO) Icono de Moneda a Euro -->
+                                        <span id="details-price-currency" class="hidden ml-1 text-gray-900 text-3xl font-bold">
+                                            €
                                         </span>
                                     </div>
-                                    <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1"></div>
+                                    <!-- (ELIMINADO) Subtexto de precio en euros -->
+                                    <!-- <div id="details-price-euros" class="text-sm text-gray-500 ml-1 mt-1"></div> -->
                                     <div id="details-price-error" class="text-sm text-red-600 ml-1 mt-1"></div>
                                 </div>
 
@@ -225,9 +227,11 @@
                                         <option value="Azul oscuro" data-fee="0">Azul oscuro</option>
                                         <option value="Morado" data-fee="0">Morado</option>
                                         <option value="Rosa" data-fee="0">Rosa</option>
-                                        <option value="Blanco" data-fee="25">Blanco (+25 monedas)</option>
+                                        <!-- (MODIFICADO) Texto a Euros -->
+                                        <option value="Blanco" data-fee="25">Blanco (+0.10€)</option>
                                         <option value="Negro" data-fee="0">Negro</option>
-                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+50 monedas)</option>
+                                        <!-- (MODIFICADO) Texto a Euros -->
+                                        <option value="Gris (blando)" data-fee="50">Gris (blando) (+0.20€)</option>
                                     </select>
                                 </div>
 
@@ -239,7 +243,8 @@
                                     </div>
                                     <div class="flex justify-between">
                                         <span class="text-gray-600">Tarifa de Color:</span>
-                                        <span id="price-summary-fee" class="font-medium">+ 0 monedas</span>
+                                        <!-- (MODIFICADO) Texto a Euros -->
+                                        <span id="price-summary-fee" class="font-medium">+ 0.00€</span>
                                     </div>
                                     <div class="flex justify-between text-base font-bold text-gray-900 border-t pt-2 mt-2">
                                         <span>Precio Total:</span>
@@ -420,9 +425,9 @@
         // --- Variables de Estado de la App ---
         let userId = null;
         let userEmail = null;
-        let currentUserCoins = 0;
+        let currentUserCoins = 0; // (MODIFICADO) Sigue guardando el valor en MONEDAS
         let currentModelToPurchase = null;
-        let currentCalculatedPrice = 0; 
+        let currentCalculatedPrice = 0; // (MODIFICADO) Sigue guardando el precio en MONEDAS
         let currentPurchaseDetails = {}; 
         
         // --- Elementos del DOM (sin cambios) ---
@@ -444,7 +449,7 @@
         const detailsPriceSpinner = document.getElementById('details-price-spinner');
         const detailsPriceText = document.getElementById('details-price-text');
         const detailsPriceCurrency = document.getElementById('details-price-currency');
-        const detailsPriceEuros = document.getElementById('details-price-euros');
+        // const detailsPriceEuros = document.getElementById('details-price-euros'); // (ELIMINADO)
         const detailsPriceError = document.getElementById('details-price-error');
         const colorPicker = document.getElementById('color-picker');
         const priceSummaryBase = document.getElementById('price-summary-base');
@@ -509,13 +514,16 @@
             onSnapshot(userProfileRef, (docSnap) => {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    currentUserCoins = data.coins || 0;
-                    userCoinsDisplay.textContent = currentUserCoins;
-                    userCoinsMobile.textContent = currentUserCoins;
+                    currentUserCoins = data.coins || 0; // Sigue guardando en monedas
+                    
+                    // (MODIFICADO) Convertir a Euros para mostrar
+                    const userBalanceEuros = (currentUserCoins / 250).toFixed(2);
+                    userCoinsDisplay.textContent = `${userBalanceEuros}€`;
+                    userCoinsMobile.textContent = `${userBalanceEuros}€`;
                 } else {
                     console.warn("Perfil de usuario no encontrado.");
-                    userCoinsDisplay.textContent = '0';
-                    userCoinsMobile.textContent = '0';
+                    userCoinsDisplay.textContent = '0.00€';
+                    userCoinsMobile.textContent = '0.00€';
                 }
             }, (error) => {
                 console.error("Error en listener de perfil:", error);
@@ -582,13 +590,13 @@
             detailsDesc.textContent = desc;
             detailsPriceSpinner.style.display = 'block';
             detailsPriceText.textContent = 'Calculando...';
-            detailsPriceEuros.textContent = '';
+            // detailsPriceEuros.textContent = ''; // (ELIMINADO)
             detailsPriceCurrency.classList.add('hidden');
             detailsPriceError.textContent = '';
             openPurchaseModalBtn.disabled = true;
             colorPicker.selectedIndex = 0;
             priceSummaryBase.textContent = '...';
-            priceSummaryFee.textContent = '+ 0 monedas';
+            priceSummaryFee.textContent = '+ 0.00€'; // (MODIFICADO)
             priceSummaryTotal.textContent = '...';
 
             const detailsEndpoint = `${workerUrl}/details?id=${id}`;
@@ -605,20 +613,21 @@
                 })
                 .catch(err => console.warn("Error al cargar imagen de alta calidad:", err));
 
+            // (MODIFICADO) Lógica de Promesa de Precio
             const pricePromise = fetch(priceEndpoint)
                 .then(res => res.ok ? res.json() : res.json().then(errData => Promise.reject(errData.error || 'Error del servidor al calcular precio')))
                 .then(data => {
-                    currentCalculatedPrice = data.basePrice; 
-                    detailsPriceText.textContent = currentCalculatedPrice;
-                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2);
-                    detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
+                    currentCalculatedPrice = data.basePrice; // Sigue en monedas
+                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); // (MODIFICADO)
+                    detailsPriceText.textContent = `${priceInEuros}`; // (MODIFICADO)
+                    // detailsPriceEuros.textContent = ``; // (ELIMINADO)
                 })
                 .catch(error => {
                     console.error("Error al calcular el precio con el Worker:", error);
-                    currentCalculatedPrice = 150; // Fallback
-                    detailsPriceText.textContent = currentCalculatedPrice;
-                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); 
-                    detailsPriceEuros.textContent = `(aprox. ${priceInEuros}€)`;
+                    currentCalculatedPrice = 150; // Fallback en monedas
+                    const priceInEuros = (currentCalculatedPrice / 250).toFixed(2); // (MODIFICADO)
+                    detailsPriceText.textContent = `${priceInEuros}`; // (MODIFICADO)
+                    // detailsPriceEuros.textContent = ``; // (ELIMINADO)
                     detailsPriceError.textContent = 'Error IA. Usando precio base.';
                 });
 
@@ -657,33 +666,37 @@
             copyToClipboard(shareUrl);
         });
 
-        // --- Lógica del Cuadro de Compra (sin cambios) ---
+        // --- (MODIFICADO) Lógica del Cuadro de Compra ---
         function updatePriceSummary() {
              if (isNaN(currentCalculatedPrice)) { 
                  console.error("Precio base no válido:", currentCalculatedPrice);
                  openPurchaseModalBtn.disabled = true; 
                  return; 
              }
-            const basePrice = currentCalculatedPrice;
+            const basePrice = currentCalculatedPrice; // en monedas
             const selectedOption = colorPicker.options[colorPicker.selectedIndex];
-            const colorFee = parseInt(selectedOption.dataset.fee || 0, 10);
-            const totalPrice = basePrice + colorFee;
+            const colorFee = parseInt(selectedOption.dataset.fee || 0, 10); // en monedas
+            const totalPrice = basePrice + colorFee; // en monedas
             const selectedColor = selectedOption.value;
 
+            // Guardar detalles (totalPrice sigue en monedas, ¡esto es importante!)
             currentPurchaseDetails = { basePrice, colorFee, totalPrice, selectedColor };
 
-            priceSummaryBase.textContent = `${basePrice} monedas`;
-            priceSummaryFee.textContent = `+ ${colorFee} monedas`;
-            priceSummaryTotal.textContent = `${totalPrice} monedas`;
+            // (MODIFICADO) Convertir a Euros solo para mostrar
+            priceSummaryBase.textContent = `${(basePrice / 250).toFixed(2)}€`;
+            priceSummaryFee.textContent = `+ ${(colorFee / 250).toFixed(2)}€`;
+            priceSummaryTotal.textContent = `${(totalPrice / 250).toFixed(2)}€`;
 
             openPurchaseModalBtn.disabled = false; 
         }
         colorPicker.addEventListener('change', updatePriceSummary);
 
-        // --- Lógica del Modal de Confirmación (sin cambios) ---
+        // --- (MODIFICADO) Lógica del Modal de Confirmación ---
         openPurchaseModalBtn.addEventListener('click', () => {
             if (!currentModelToPurchase || !currentPurchaseDetails || isNaN(currentPurchaseDetails.totalPrice)) return;
-            const { totalPrice, selectedColor } = currentPurchaseDetails;
+            
+            // totalPrice está en MONEDAS (de currentPurchaseDetails)
+            const { totalPrice, selectedColor } = currentPurchaseDetails; 
             
             detailsPriceError.textContent = ''; 
 
@@ -691,10 +704,11 @@
             modalModelName.textContent = currentModelToPurchase.name;
             modalModelColor.textContent = `Color: ${selectedColor}`;
             
-            modalPriceTotal.textContent = `${totalPrice} monedas`;
-            modalCurrentBalance.textContent = `${currentUserCoins} monedas`;
-            const remainingBalance = currentUserCoins - totalPrice;
-            modalRemainingBalance.textContent = `${remainingBalance} monedas`;
+            // (MODIFICADO) Convertir todo a Euros para mostrar
+            modalPriceTotal.textContent = `${(totalPrice / 250).toFixed(2)}€`;
+            modalCurrentBalance.textContent = `${(currentUserCoins / 250).toFixed(2)}€`;
+            const remainingBalance = currentUserCoins - totalPrice; // Cálculo en monedas
+            modalRemainingBalance.textContent = `${(remainingBalance / 250).toFixed(2)}€`; // Mostrar en euros
 
             modalRemainingBalance.classList.toggle('text-red-600', remainingBalance < 0);
             modalRemainingBalance.classList.toggle('font-bold', remainingBalance < 0);
@@ -780,6 +794,8 @@
 
 
         // --- ¡¡¡MODIFICADO!!! Lógica de Compra (Llama al Worker) ---
+        // (Esta función no necesita cambios, ya que ENVIARÁ el precio en MONEDAS,
+        // lo cual es correcto. El worker espera monedas.)
         async function handlePurchase() {
             if (!currentModelToPurchase || !userId || !currentPurchaseDetails || isNaN(currentPurchaseDetails.totalPrice)) {
                  modalMessage.textContent = 'Error: Datos de compra inválidos.';
@@ -803,12 +819,13 @@
                 const token = await getIdToken(user); // ¡Token de seguridad!
 
                 // 2. Preparar los datos del pedido para enviar al worker
+                // (totalPrice y pricePaid están en MONEDAS, lo cual es correcto)
                 const orderPayload = {
                     modelId: currentModelToPurchase.id,
                     modelName: currentModelToPurchase.name,
                     color: currentPurchaseDetails.selectedColor,
-                    totalPrice: currentPurchaseDetails.totalPrice,
-                    pricePaid: currentPurchaseDetails.totalPrice // (Coinciden en este caso)
+                    totalPrice: currentPurchaseDetails.totalPrice, // En MONEDAS
+                    pricePaid: currentPurchaseDetails.totalPrice // En MONEDAS
                 };
 
                 // 3. Llamar al endpoint /buy del worker
