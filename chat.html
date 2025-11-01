@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print3D Store - Chat</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Carga de la fuente Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Carga de estilos CSS externos -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <style>
+        /* Estilos del loader */
+        .loader {
+            border: 4px solid #f3f4f6; /* gray-100 */
+            border-top: 4px solid #3b82f6; /* blue-500 */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para la barra de navegación móvil inferior */
+        .mobile-nav-link {
+            flex: 1 1 0%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+            color: #6b7280; /* text-gray-500 */
+            transition: color 0.15s ease-in-out;
+        }
+        .mobile-nav-link:hover {
+            color: #374151; /* text-gray-700 */
+        }
+        .mobile-nav-link.active {
+            color: #2563eb; /* text-blue-600 */
+        }
+        .mobile-nav-link svg {
+            margin-bottom: 0.25rem;
+        }
+    </style>
+
+</head>
+<body class="antialiased text-gray-800 bg-gray-100">
+
+    <!-- Contenedor principal de la App (Oculto hasta que se verifique auth) -->
+    <div id="app-container" class="min-h-screen hidden">
+
+        <!-- 
+          Barra de Navegación Móvil (visible en móvil) 
+        -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 sm:hidden">
+            <div class="container mx-auto px-4">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Título -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span class="font-bold text-xl text-gray-900">Print3D</span>
+                    </div>
+                    <!-- Info de Usuario (Saldo en Euros) -->
+                    <div class="flex items-center">
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-3 py-1.5">
+                            <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <span id="user-coins-mobile" class="font-bold text-sm">...</span>
+                        </div>
+                        <button id="logout-btn-mobile" class="ml-3 text-sm font-medium text-gray-500 hover:text-gray-700">Salir</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Info de Usuario y Carga (para mostrar mientras se conecta) -->
+            <div class="bg-gray-100 py-2 px-4 border-t border-gray-200">
+                <div class="container mx-auto flex justify-between items-center text-xs text-gray-600">
+                    <span id="auth-status-mobile">Verificando...</span>
+                </div>
+            </div>
+        </nav>
+
+
+        <!-- Barra de Navegación (visible en escritorio) -->
+        <nav class="bg-white shadow-md sticky top-0 z-20 hidden sm:block">
+            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <!-- Logo/Título -->
+                    <div class="flex-shrink-0 flex items-center">
+                        <svg class="w-8 h-8 text-blue-600 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        <span class="font-bold text-xl text-gray-900">Print3D Store</span>
+                    </div>
+                    
+                    <!-- Enlaces de Navegación -->
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <a href="home.html" id="nav-store" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Tienda
+                        </a>
+                        <a href="cart.html" id="nav-orders" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Mis Pedidos
+                        </a>
+                        <a href="personalize.html" id="nav-personalize" class="nav-link border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Personalizar
+                        </a>
+                        <!-- (NUEVO) Enlace Chat -->
+                        <a href="chat.html" id="nav-chat" class="nav-link border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Chat
+                        </a>
+                        <!-- Pestaña de Admin Pedidos -->
+                        <a href="home.html" id="nav-admin-orders" class="nav-link hidden border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
+                            Pedidos (Admin)
+                        </a>
+                    </div>
+
+                    <!-- Info de Usuario (Saldo en Euros) -->
+                    <div class="flex items-center">
+                        <div class="flex items-center bg-green-100 text-green-800 rounded-full px-4 py-1.5 mr-4">
+                            <svg class="w-5 h-5 mr-1.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756c.386.19.74.42 1.05.684m0 0c.31.264.59.558.82.88m0 0a8.966 8.966 0 011.606 3.056m0 0a8.966 8.966 0 01-1.606 3.056m0 0c-.23.322-.51.616-.82.88m0 0c-.31.264-.664.493-1.05.684m0 0a8.966 8.966 0 01-2.1 1.32m0 0a8.966 8.966 0 01-2.1-1.32m0 0c-.386-.19-.74-.42-1.05-.684m0 0c-.31-.264-.59-.558-.82-.88m0 0a8.966 8.966 0 01-1.606-3.056m0 0a8.966 8.966 0 011.606-3.056m0 0c.23-.322.51-.616.82-.88m0 0c.31-.264.664.493 1.05-.684m0 0a8.966 8.966 0 012.1-1.32m0 0a8.966 8.966 0 012.1 1.32M4.5 12h15M4.5 9.75h15M4.5 14.25h15" /></svg>
+                            <span class="text-sm font-medium mr-1">Saldo:</span>
+                            <span id="user-coins" class="font-bold text-sm">...</span>
+                        </div>
+                        <button id="logout-btn" class="text-sm font-medium text-gray-500 hover:text-gray-700">Cerrar Sesión</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Info de Usuario y Carga (para mostrar mientras se conecta) -->
+            <div class="bg-gray-100 py-2 px-4 sm:px-6 lg:px-8 border-t border-gray-200">
+                <div class="container mx-auto flex justify-between items-center text-xs text-gray-600">
+                    <span id="auth-status">Verificando...</span>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="container mx-auto p-4 sm:p-6 lg:p-8 pb-24 sm:pb-8">
+
+            <!-- Vista de Admin: Lista de Chats (Oculta por defecto) -->
+            <div id="admin-chat-list-view" class="hidden">
+                <h1 class="text-3xl font-bold text-gray-900 mb-6">Conversaciones</h1>
+                
+                <!-- Spinner de Carga -->
+                <div id="admin-chat-loading" class="flex justify-center items-center h-64">
+                    <div class="loader"></div>
+                </div>
+
+                <!-- Lista de Chats -->
+                <div id="admin-chat-list" class="space-y-3">
+                    <!-- Los chats de admin se insertarán aquí -->
+                </div>
+            </div>
+
+            <!-- Vista de Chat: Interfaz de Chat (Oculta por defecto) -->
+            <div id="chat-interface-view" class="hidden">
+                
+                <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-xl flex flex-col" style="height: 75vh;">
+                    
+                    <!-- Cabecera del Chat -->
+                    <div class="flex items-center p-4 border-b border-gray-200">
+                        <!-- Botón de Volver (solo para Admin) -->
+                        <button id="admin-back-btn" class="hidden sm:block text-gray-500 hover:text-gray-800 mr-4">
+                            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </button>
+                        <h2 id="chat-with-title" class="text-xl font-semibold text-gray-900">...</h2>
+                    </div>
+
+                    <!-- Contenedor de Mensajes -->
+                    <div id="chat-messages" class="flex-1 p-4 space-y-4 overflow-y-auto">
+                        <!-- Los mensajes se insertarán aquí -->
+                        <div class="text-center text-gray-500 text-sm">Cargando mensajes...</div>
+                    </div>
+
+                    <!-- Formulario de Enviar Mensaje -->
+                    <form id="chat-form" class="p-4 border-t border-gray-200 bg-gray-50">
+                        <div class="flex items-center space-x-3">
+                            <input type="text" id="chat-input" class="flex-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" placeholder="Escribe un mensaje..." autocomplete="off">
+                            <button type="submit" class="inline-flex items-center justify-center p-2 rounded-full text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Barra de Navegación Móvil (Inferior) -->
+    <nav id="mobile-nav" class="sm:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-gray-200 flex z-30">
+        <!-- Enlace Mis Pedidos -->
+        <a href="cart.html" id="mobile-nav-orders" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span class="text-xs">Mis Pedidos</span>
+        </a>
+        
+        <!-- Enlace Tienda (Home) -->
+        <a href="home.html" id="mobile-nav-store" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            <span class="text-xs">Tienda</span>
+        </a>
+
+        <!-- Enlace Personalizar -->
+        <a href="personalize.html" id="mobile-nav-personalize" class="mobile-nav-link">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" /></svg>
+            <span class="text-xs">Personalizar</span>
+        </a>
+
+        <!-- (NUEVO) Enlace Chat -->
+        <a href="chat.html" id="mobile-nav-chat" class="mobile-nav-link active">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            <span class="text-xs">Chat</span>
+        </a>
+        
+        <!-- Enlace Pedidos (Admin) -->
+        <a href="home.html" id="mobile-nav-admin-orders" class="mobile-nav-link hidden">
+            <svg class="w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span class="text-xs">Admin</span>
+        </a>
+    </nav>
+
+
+    <!-- Script de Firebase -->
+    <script type="module">
+        // Importar funciones de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            collection, 
+            onSnapshot, 
+            query,
+            setLogLevel,
+            addDoc,
+            setDoc,
+            serverTimestamp,
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- Configuración de Firebase ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCSjDd3NUX08_G2QySl7ce0kS9kYiXfKfw",
+          authDomain: "dprinting-9b264.firebaseapp.com",
+          projectId: "dprinting-9b264",
+          storageBucket: "dprinting-9b264.firebasestorage.app",
+          messagingSenderId: "647333546063",
+          appId: "1:647333546063:web:d2cb20940e76c913c5c23a",
+          measurementId: "G-FWKS2HB1SE"
+        };
+        
+        const appId = firebaseConfig.projectId || 'default-app-id';
+        const adminEmails = ['arielcapdevilagarcia@gmail.com', 'cloenarvaez@gmail.com'];
+
+        // Inicializar Firebase
+        let app, db, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            setLogLevel('Debug');
+            console.log("Firebase inicializado en chat.html");
+        } catch (error) {
+            console.error("Error al inicializar Firebase:", error);
+            document.getElementById('auth-status').textContent = 'Error al conectar con Firebase.';
+            document.getElementById('auth-status-mobile').textContent = 'Error al conectar con Firebase.';
+        }
+
+        // --- Variables de Estado de la App ---
+        let userId = null;
+        let userEmail = null; 
+        let isAdmin = false;
+        let currentUserCoins = 0; // Sigue guardando el valor en MONEDAS
+        let currentChatListener = null; // Para detener el listener de mensajes
+        let adminListListener = null; // Para detener el listener de la lista de chats
+        
+        // --- Elementos del DOM ---
+        // Headers
+        const authStatus = document.getElementById('auth-status');
+        const userCoinsDisplay = document.getElementById('user-coins');
+        const logoutBtn = document.getElementById('logout-btn');
+        const authStatusMobile = document.getElementById('auth-status-mobile');
+        const userCoinsMobile = document.getElementById('user-coins-mobile');
+        const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+        const appContainer = document.getElementById('app-container');
+        
+        // Nav
+        const navAdminOrders = document.getElementById('nav-admin-orders'); 
+        const mobileNavAdminOrders = document.getElementById('mobile-nav-admin-orders');
+        
+        // Vistas
+        const adminChatListView = document.getElementById('admin-chat-list-view');
+        const adminChatLoading = document.getElementById('admin-chat-loading');
+        const adminChatList = document.getElementById('admin-chat-list');
+        const chatInterfaceView = document.getElementById('chat-interface-view');
+        
+        // Chat Interface
+        const adminBackBtn = document.getElementById('admin-back-btn');
+        const chatWithTitle = document.getElementById('chat-with-title');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+
+
+        // --- Lógica de Autenticación ---
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Usuario está conectado
+                userId = user.uid;
+                userEmail = user.email; 
+                isAdmin = adminEmails.includes(userEmail);
+                
+                const statusText = `Conectado como: ${user.email}`;
+                authStatus.textContent = statusText;
+                authStatusMobile.textContent = statusText;
+                
+                appContainer.style.display = 'block'; // Mostrar app
+                
+                await setupUserListeners(userId); // Cargar saldo
+
+                // Mostrar enlaces de admin si lo es
+                if (isAdmin) {
+                    navAdminOrders.style.display = 'inline-flex'; 
+                    mobileNavAdminOrders.style.display = 'flex'; 
+                }
+
+                // Lógica principal de vistas de Chat
+                if (isAdmin) {
+                    showAdminChatList();
+                } else {
+                    showUserChat();
+                }
+                
+            } else {
+                // Usuario está desconectado, redirigir a login
+                console.log("Usuario no logueado, redirigiendo a login.html");
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Manejar click de Cerrar Sesión (ambos botones)
+        const handleSignOut = async () => {
+            try {
+                if (currentChatListener) currentChatListener();
+                if (adminListListener) adminListListener();
+                await signOut(auth);
+            } catch (error) {
+                console.error("Error al cerrar sesión:", error);
+            }
+        };
+        logoutBtn.addEventListener('click', handleSignOut);
+        logoutBtnMobile.addEventListener('click', handleSignOut);
+
+
+        // --- Lógica de Carga de Saldo (Euros) ---
+
+        async function setupUserListeners(currentUserId) {
+            if (!currentUserId) return;
+
+            // Listener para el perfil del usuario (monedas)
+            const userProfileRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'profile', 'data');
+            
+            onSnapshot(userProfileRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    currentUserCoins = data.coins || 0; // Sigue en monedas
+                    const userBalanceEuros = (currentUserCoins / 250).toFixed(2);
+                    userCoinsDisplay.textContent = `${userBalanceEuros}€`;
+                    userCoinsMobile.textContent = `${userBalanceEuros}€`;
+                } else {
+                   console.error("Error: Perfil de usuario no encontrado.");
+                   userCoinsDisplay.textContent = '0.00€';
+                   userCoinsMobile.textContent = '0.00€';
+                }
+            }, (error) => {
+                console.error("Error en listener de perfil:", error);
+            });
+        }
+
+        // --- Lógica de Vistas de Chat ---
+
+        function showAdminChatList() {
+            console.log("Modo Admin: Cargando lista de chats...");
+            chatInterfaceView.style.display = 'none';
+            adminChatListView.style.display = 'block';
+            adminChatLoading.style.display = 'flex';
+            if (currentChatListener) currentChatListener(); // Detener listener de chat si estaba activo
+
+            const chatsRef = collection(db, 'artifacts', appId, 'public', 'chats');
+            adminListListener = onSnapshot(query(chatsRef), (snapshot) => {
+                renderAdminChatList(snapshot.docs);
+                adminChatLoading.style.display = 'none';
+            }, (error) => {
+                console.error("Error cargando lista de chats (admin):", error);
+                adminChatLoading.innerHTML = '<p class="text-red-500">Error al cargar chats.</p>';
+            });
+        }
+
+        function showUserChat() {
+            console.log("Modo Usuario: Cargando chat con admin...");
+            adminChatListView.style.display = 'none';
+            chatInterfaceView.style.display = 'block';
+            adminBackBtn.style.display = 'none'; // Ocultar botón "Volver"
+            chatWithTitle.textContent = 'Chat con Admin';
+            if (adminListListener) adminListListener(); // Detener listener de admin si estaba activo
+            
+            // El ID del chat del usuario es su propio userId
+            loadChatMessages(userId, userEmail);
+        }
+
+        function showChatView(chatUserId, chatUserEmail) {
+            // Esta función es solo para el admin
+            console.log(`Admin abriendo chat con: ${chatUserEmail} (ID: ${chatUserId})`);
+            adminChatListView.style.display = 'none';
+            chatInterfaceView.style.display = 'block';
+            adminBackBtn.style.display = 'block'; // Mostrar botón "Volver"
+            chatWithTitle.textContent = `Chat con ${chatUserEmail}`;
+            
+            loadChatMessages(chatUserId, chatUserEmail);
+        }
+
+        // --- Lógica de Renderizado ---
+
+        function renderAdminChatList(docs) {
+            adminChatList.innerHTML = '';
+            if (docs.length === 0) {
+                adminChatList.innerHTML = '<p class="text-gray-500 text-center">No hay conversaciones.</p>';
+                return;
+            }
+
+            const sortedDocs = docs.sort((a, b) => 
+                (b.data().lastTimestamp?.seconds || 0) - (a.data().lastTimestamp?.seconds || 0)
+            );
+
+            sortedDocs.forEach(doc => {
+                const chat = doc.data();
+                const chatUserId = doc.id;
+                const isUnread = chat.unreadByAdmin === true;
+
+                const chatItem = `
+                    <button class="w-full text-left p-4 bg-white rounded-lg shadow hover:bg-gray-50 flex justify-between items-center" 
+                            data-user-id="${chatUserId}" data-user-email="${chat.userEmail || ''}">
+                        <div>
+                            <p class="font-semibold text-gray-900">${chat.userEmail || 'Usuario Desconocido'}</p>
+                            <p class="text-sm text-gray-600 truncate">${chat.lastMessage || '...'}</p>
+                        </div>
+                        ${isUnread ? '<div class="w-3 h-3 bg-blue-500 rounded-full flex-shrink-0 ml-4" title="No leído"></div>' : ''}
+                    </button>
+                `;
+                adminChatList.innerHTML += chatItem;
+            });
+
+            // Adjuntar listeners
+            adminChatList.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const { userId: chatUserId, userEmail: chatUserEmail } = button.dataset;
+                    showChatView(chatUserId, chatUserEmail);
+                });
+            });
+        }
+
+        function loadChatMessages(chatUserId, chatUserEmail) {
+            if (currentChatListener) currentChatListener(); // Detener listener anterior
+            chatMessages.innerHTML = '';
+            
+            // Guardar el ID del chat actual en el formulario
+            chatForm.dataset.chatUserId = chatUserId;
+            chatForm.dataset.chatUserEmail = chatUserEmail; // Email del *usuario*
+
+            // Escuchar la subcolección de mensajes
+            const messagesRef = collection(db, 'artifacts', appId, 'public', 'chats', chatUserId, 'messages');
+            currentChatListener = onSnapshot(query(messagesRef), (snapshot) => {
+                renderMessages(snapshot.docs);
+
+                // Marcar como leído
+                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'chats', chatUserId);
+                if (isAdmin) {
+                    setDoc(chatDocRef, { unreadByAdmin: false }, { merge: true });
+                } else {
+                    setDoc(chatDocRef, { unreadByUser: false }, { merge: true });
+                }
+            });
+        }
+
+        function renderMessages(docs) {
+            chatMessages.innerHTML = '';
+            if (docs.length === 0) {
+                chatMessages.innerHTML = '<p class="text-center text-gray-500 text-sm">No hay mensajes. ¡Envía el primero!</p>';
+                return;
+            }
+            
+            const sortedDocs = docs.sort((a, b) => 
+                (a.data().timestamp?.seconds || 0) - (b.data().timestamp?.seconds || 0)
+            );
+
+            sortedDocs.forEach(doc => {
+                const msg = doc.data();
+                const isSender = msg.senderId === userId;
+                
+                const bubbleClass = isSender
+                    ? 'bg-blue-600 text-white self-end'
+                    : 'bg-gray-200 text-gray-800 self-start';
+                
+                const senderName = msg.senderEmail === userEmail ? 'Tú' : (msg.senderEmail || 'Usuario');
+                
+                const messageHtml = `
+                    <div class="flex flex-col ${isSender ? 'items-end' : 'items-start'}">
+                        <span class="text-xs text-gray-500 mb-0.5 ${isSender ? 'mr-2' : 'ml-2'}">
+                            ${msg.senderEmail === userEmail ? 'Tú' : (msg.senderEmail || 'Usuario')}
+                        </span>
+                        <div class="p-3 rounded-lg max-w-xs lg:max-w-md ${bubbleClass}">
+                            ${msg.text}
+                        </div>
+                    </div>
+                `;
+                chatMessages.innerHTML += messageHtml;
+            });
+
+            // Auto-scroll al fondo
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+
+        // --- Lógica de Envío de Mensajes ---
+
+        async function handleSendMessage(e) {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (text === '') return;
+
+            // ID del chat (documento) al que enviar
+            const targetChatUserId = chatForm.dataset.chatUserId; 
+            // Email del *usuario* (para el doc de chat)
+            const targetChatUserEmail = chatForm.dataset.chatUserEmail; 
+
+            if (!targetChatUserId) {
+                console.error("Error: No se ha establecido targetChatUserId en el formulario.");
+                return;
+            }
+
+            chatInput.value = '';
+            chatInput.disabled = true;
+
+            try {
+                // 1. Añadir el nuevo mensaje a la subcolección
+                const messagesRef = collection(db, 'artifacts', appId, 'public', 'chats', targetChatUserId, 'messages');
+                await addDoc(messagesRef, {
+                    text: text,
+                    senderId: userId, // El usuario logueado actualmente
+                    senderEmail: userEmail,
+                    timestamp: serverTimestamp()
+                });
+
+                // 2. Actualizar el documento "padre" del chat (para la lista de admin)
+                const chatDocRef = doc(db, 'artifacts', appId, 'public', 'chats', targetChatUserId);
+                let chatDataUpdate = {
+                    userEmail: targetChatUserEmail, // Email del usuario (no-admin)
+                    lastMessage: text,
+                    lastTimestamp: serverTimestamp(),
+                };
+
+                if (isAdmin) {
+                    // Si el admin envía, marcar como no leído para el usuario
+                    chatDataUpdate.unreadByUser = true;
+                } else {
+                    // Si el usuario envía, marcar como no leído para el admin
+                    chatDataUpdate.unreadByAdmin = true;
+                }
+
+                await setDoc(chatDocRef, chatDataUpdate, { merge: true });
+
+            } catch (error) {
+                console.error("Error al enviar mensaje:", error);
+                chatInput.value = text; // Devolver el texto si falla
+            } finally {
+                chatInput.disabled = false;
+                chatInput.focus();
+            }
+        }
+
+        chatForm.addEventListener('submit', handleSendMessage);
+        
+        // Botón de Volver (Admin)
+        adminBackBtn.addEventListener('click', () => {
+            showAdminChatList();
+        });
+
+    </script>
+</body>
+</html>
