@@ -281,12 +281,12 @@
             document.getElementById('auth-status-mobile').textContent = 'Error al conectar con Firebase.';
         }
 
-        // --- (NUEVO) Iconos SVG para Ticks ---
+        <!-- (NUEVO) Iconos SVG para Ticks ---
         // Estado 1: Preparando (Reloj)
         const TICK_SENDING_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#bee3f8"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 5.168A.75.75 0 009 5.75v5.5a.75.75 0 00.75.75h5.5a.75.75 0 000-1.5H10.25V5.75a.75.75 0 00-.695-.582z" clip-rule="evenodd" /></svg>`;
-        // Estado 2: Enviado (1 Tick)
-        const TICK_SENT_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#bee3f8"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /></svg>`;
-        // Estado 3: Leído (2 Ticks) - Color blanco para destacar sobre el azul
+        // Estado 2: Entregado (2 Ticks Grises/Claros) - El "dos ticks enviado" del usuario
+        const TICK_DELIVERED_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#bee3f8"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /><path d="M11.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" transform="translate(-5)" /></svg>`;
+        // Estado 3: Leído (2 Ticks Blancos/Azules) - El "azules leido" del usuario (color blanco para contraste)
         const TICK_READ_SVG = `<svg class="inline-block h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="#ffffff"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /><path d="M11.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" transform="translate(-5)" /></svg>`;
 
 
@@ -579,11 +579,11 @@
                         const isRead = (isAdmin && chatData.unreadByUser === false) || (!isAdmin && chatData.unreadByAdmin === false);
                         
                         if (isRead) {
-                            // Estado 3: Leído (2 Ticks Blancos)
+                            // Estado 3: Leído (2 Ticks Blancos, como en la imagen)
                             tickHtml = TICK_READ_SVG;
                         } else {
-                            // Estado 2: Enviado (1 Tick)
-                            tickHtml = TICK_SENT_SVG;
+                            // Estado 2: Entregado (2 Ticks claros)
+                            tickHtml = TICK_DELIVERED_SVG;
                         }
                     }
                 }
